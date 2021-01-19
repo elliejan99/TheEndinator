@@ -6,11 +6,11 @@ title:  Team
 # {{ page.title }}
 
 
-## USER 1
+## Ellie Jan
 ***UCI Net ID***: eijan
 
-## USER 2
+## Cindy Liew
 ***UCI Net ID***: ccliew
 
-## USER 3
+## Omar Hany Halawa
 ***UCI Net ID***: ohalawa
