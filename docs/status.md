@@ -20,6 +20,8 @@ of a flat area surrounded by entities at varying heights and distances and is gi
 uses ObservationFromRay, to detect whether or not there’s an entity to shoot at in the center of their screen. We also utilize 
 ObervationFromFullStats in order to keep track of the number of arrows that our agent has used.
 
+![](image1.png)
+
 There are an infinite number of states as our agent utilizes continuous movement. To transition from one state to another, the agent
 takes three actions. The actions are changing pitch (looking up and down), changing turn (looking left and right), and deciding whether
 or not to use their bow. The agent will always change their pitch and turn, but whether or not they use their bow is dependent on 
@@ -35,6 +37,8 @@ Based on the rewards or punishments our agent receives, it updates its policy ac
 angle needed to hit its target. Our project utilizes the PPOtrainer from Rllib in order to maximize the number of entities damaged in a single run. 
 
 ## Evaluation
+
+![](graph.png)
 
 ## Remaining Goals and Challenges
 
