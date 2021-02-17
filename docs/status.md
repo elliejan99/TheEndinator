@@ -4,7 +4,7 @@ title: Status
 ---
 ## Video Summary
 
-<iframe width="600" height="350" src="https://www.youtube.com/watch?v=5POyuojgjSk&feature=youtu.be" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="600" height="350" src="https://www.youtube.com/embed/G3Dkr1f-HUo" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Project Summary
 
