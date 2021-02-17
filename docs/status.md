@@ -40,7 +40,8 @@ Qualitatively, we can evaluate our agent based on our observations of our agent�
 
 ![](graph.png)
 
-Quantitatively, we can evaluate our agent based on the number of rewards it was getting with every successive mission. As we can see in the reinforcement learning rewards graph above, there is an increasing trend in the damage to entities, meaning that the agent was both finding and shooting entities more often over time. This indicates that the agent’s policy was improving over time as it learned to account for distance when adjusting the pitch and turn of its arrow. 
+Quantitatively, we can evaluate our agent based on the number of rewards it was getting with every successive mission. As we can see in the reinforcement learning rewards graph above, there is an increasing trend in the damage to entities, meaning that the agent was both finding and shooting entities more often over time. This indicates that the agent’s policy was improving over time as it learned to account for distance when adjusting the pitch and turn of its arrow. Based on our reward and punishments, damaging an entity results in a reward of 10 whereas using an arrow results in a punishment of 1. Therefore, assuming that damage is rewarded based on the percentage of health taken, an arrow deals three hearts of damage, meaning that every arrow that hits an entity gives a reward of 30. Based on this analysis, our agent went from hitting between 1-2 entities per mission to 6+ entities per mission. 
+
 
 ## Remaining Goals and Challenges
 
