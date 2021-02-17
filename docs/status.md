@@ -3,7 +3,8 @@ layout: default
 title: Status
 ---
 ## Video Summary
-[![TheEndinator](image.png)](https://www.youtube.com/watch?v=5POyuojgjSk&feature=youtu.be)
+
+<iframe width="560" height="315" src="https://www.youtube.com/watch?v=5POyuojgjSk&feature=youtu.be" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Project Summary
 
