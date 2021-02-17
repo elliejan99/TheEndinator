@@ -63,3 +63,5 @@ change to deep Q-learning as smooth as possible.
 
 Deep Q Learning - https://keras-rl.readthedocs.io/en/latest/agents/overview/
 Reinforcement Learning - https://docs.ray.io/en/master/rllib.html
+Malmo XMl - http://microsoft.github.io/malmo/0.30.0/Schemas/MissionHandlers.html
+Code & Discussion References - CampusWire, Assignment2
