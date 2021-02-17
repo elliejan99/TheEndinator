@@ -9,7 +9,7 @@ Our agent needs to defeat the final boss of the Minecraft world but fails to use
 In order to reach his goal in defeating the ender dragon, our agent starts to train with his bow and arrow, adjusting for vertical and horizontal angles 
 as well as accomodating for different distances. Before he can advance to more difficult training, our agent begins with shooting at pigs at closer distances and lower heights. In the future, our agent will need to train with shooting entities that are placed farther and heigher in order to succeed in breaking end crystals. Check out our status report to see how our agent performed in his first step towards the final boss!
 
-![](image.png)
+<img src="image.png" width="250">
 
 Source code: https://github.com/elliejan99/TheEndinator
 
