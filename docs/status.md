@@ -20,7 +20,7 @@ of a flat area surrounded by entities at varying heights and distances and is gi
 uses ObservationFromRay, to detect whether or not there’s an entity to shoot at in the center of their screen. We also utilize 
 ObervationFromFullStats in order to keep track of the number of arrows that our agent has used.
 
-![](image1.png)
+![](rl.png)
 
 There are an infinite number of states as our agent utilizes continuous movement. To transition from one state to another, the agent
 takes three actions. The actions are changing pitch (looking up and down), changing turn (looking left and right), and deciding whether
