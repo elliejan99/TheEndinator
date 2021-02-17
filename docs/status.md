@@ -46,7 +46,7 @@ Quantitatively, we can evaluate our agent based on the number of rewards it was 
 
 One of the most critical goals we have going forward is to change the primary algorithm that we’re using to train our agent from reinforcement learning to deep Q-learning. We believe that deep Q-learning would allow our agent to develop a better policy and allow for more ambitiously placed targets. We’ve done a few trials thus far, but concluded that we needed to do more research and changes to our code before deep Q-learning showed greater improvements over reinforcement learning. Additionally, our prototype has only been trained on targets at close heights and distances, so we hope to give it more experience with targets at further heights and distances as well. This ties in to our ultimate goal of having our agent be able to shoot targets on top of the tall and far pillars in the ender dragon’s domain. To test that, another goal we have is to create more fine-tuned maps that will enable us to systematically test our agent’s aim as each mission we currently train our agent on is randomized. Lastly, we hope to experiment with different hand-coded policies in order to figure out which yield the best results.
 
-![](q.png)
+![](q1.png)
 
 Some challenges we anticipate that we’ll face in the near future include finding more ways to evaluate our agent’s performance as well as 
 figuring out what major changes will be needed in order to change the primary algorithm we use to train our agent. To begin with, we currently
