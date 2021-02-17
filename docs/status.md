@@ -62,3 +62,4 @@ change to deep Q-learning as smooth as possible.
 ## Resources Used
 
 Deep Q Learning - https://keras-rl.readthedocs.io/en/latest/agents/overview/
+Reinforcement Learning - https://docs.ray.io/en/master/rllib.html
