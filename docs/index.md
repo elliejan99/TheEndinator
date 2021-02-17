@@ -3,7 +3,7 @@ layout: default
 title:  Home
 ---
 
-# ~Training to Defeat the Final Boss~
+# Training to Defeat the Final Boss!
 
 Our agent needs to defeat the final boss of the Minecraft world but fails to use his bow and arrow properly to shoot at the end crystals. 
 In order to reach his goal in defeating the ender dragon, our agent starts to train with his bow and arrow, adjusting for vertical and horizontal angles 
