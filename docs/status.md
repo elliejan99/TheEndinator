@@ -18,7 +18,7 @@ for objects to shoot, as well as adjusting the vertical and horizontal angle of 
 The main algorithm that we’re using to train our agent is reinforcement learning. In the image below, it shows how our reinforcement algorithm works in order for our agent to improve its shooting. An action is made by the agent which is composed of continuous movements in adjusting turn, pitch, and use for the bow. Our environment will change based on our action and produce a reward depending on whether we missed (negative reward) or managed to shoot a pig (positive reward). The different states that result from our actions and the rewards will then be taken in by our agents to improve its future actions.
 Our agent begins their mission in the center of a flat area surrounded by entities at varying heights and distances and is given a bow and several arrows. The agent mainly uses ObservationFromRay, to detect whether or not there’s an entity to shoot at in the center of their screen. We also utilize ObervationFromFullStats in order to keep track of the number of arrows that our agent has used.
 
-![](rl.png =250x250)
+![](rl.png)
 
 There are an infinite number of states as our agent utilizes continuous movement. To transition from one state to another, the agent
 takes three actions. The actions are changing pitch (looking up and down), changing turn (looking left and right), and deciding whether
