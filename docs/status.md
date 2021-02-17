@@ -18,7 +18,7 @@ for objects to shoot, as well as adjusting the vertical and horizontal angle of 
 The main algorithm that we’re using to train our agent is reinforcement learning. In the image below, it shows how our reinforcement algorithm works in order for our agent to improve its shooting. An action is made by the agent which is composed of continuous movements in adjusting turn, pitch, and use for the bow. Our environment will change based on our action and produce a reward depending on whether we missed (negative reward) or managed to shoot a pig (positive reward). The different states that result from our actions and the rewards will then be taken in by our agents to improve its future actions.
 Our agent begins their mission in the center of a flat area surrounded by entities at varying heights and distances and is given a bow and several arrows. The agent mainly uses ObservationFromRay, to detect whether or not there’s an entity to shoot at in the center of their screen. We also utilize ObervationFromFullStats in order to keep track of the number of arrows that our agent has used.
 
-![](rl.png)
+![](rl.png | width=100)
 
 There are an infinite number of states as our agent utilizes continuous movement. To transition from one state to another, the agent
 takes three actions. The actions are changing pitch (looking up and down), changing turn (looking left and right), and deciding whether
@@ -36,12 +36,17 @@ angle needed to hit its target. Our project utilizes the PPOtrainer from Rllib i
 
 ## Evaluation
 
+Qualitatively, we can evaluate our agent based on our observations of our agent’s performance during its training. For this milestone, we placed pigs on blocks that are closer in distance to the agent and of heights just a few blocks above and below the agent to help the agent engage in simpler training. In the beginning of its training, the agent often aims its bow down in the water or misses the pigs on the block. When it finally finds an entity to shoot, regardless of the distance, it would point its arrow right at it, resulting in the arrow falling short of targets at far distances. However, after training the agent for a period of time, we can see from the rewards graph below that the agent is able to identify at which height the blocks and pigs are placed and aims with a more accurate pitch. If the entity was further away, the agent would raise its arrow upwards slightly to account for the distance. Our rewards were able to increase over the large number of runs performed since the agent learned the height of the blocks and searched for entities placed on these blocks to shoot while adjusting the pitch and turn slightly to aim more accurately. 
+
 ![](graph.png)
+
+Quantitatively, we can evaluate our agent based on the number of rewards it was getting with every successive mission. As we can see in the reinforcement learning rewards graph above, there is an increasing trend in the damage to entities, meaning that the agent was both finding and shooting entities more often over time. This indicates that the agent’s policy was improving over time as it learned to account for distance when adjusting the pitch and turn of its arrow. 
 
 ## Remaining Goals and Challenges
 
 One of the most critical goals we have going forward is to change the primary algorithm that we’re using to train our agent from reinforcement learning to deep Q-learning. We believe that deep Q-learning would allow our agent to develop a better policy and allow for more ambitiously placed targets. We’ve done a few trials thus far, but concluded that we needed to do more research and changes to our code before deep Q-learning showed greater improvements over reinforcement learning. Additionally, our prototype has only been trained on targets at close heights and distances, so we hope to give it more experience with targets at further heights and distances as well. This ties in to our ultimate goal of having our agent be able to shoot targets on top of the tall and far pillars in the ender dragon’s domain. To test that, another goal we have is to create more fine-tuned maps that will enable us to systematically test our agent’s aim as each mission we currently train our agent on is randomized. Lastly, we hope to experiment with different hand-coded policies in order to figure out which yield the best results.
 
+![](q.png)
 
 Some challenges we anticipate that we’ll face in the near future include finding more ways to evaluate our agent’s performance as well as 
 figuring out what major changes will be needed in order to change the primary algorithm we use to train our agent. To begin with, we currently
