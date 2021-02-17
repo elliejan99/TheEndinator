@@ -11,30 +11,9 @@ Reports:
 - [Status](status.html)
 - [Final](final.html)
 
-What's Markdown (`.md`)?
-
-Markdown is markup that lets you write hypertext (HTML) documents
-in easy-to-read and easy-to-write plain text.
-No angle brackets `<></>` required for
-paragraphs, lists, blockquotes, tables, etc.
-
-
-This is a paragraph (in Markdown). Some more
-text here.
-
-This is another paragraph.
-
-This is a list:
-
-- Orange
-- Apple
-- Blueberry
-
-$$x^2 = y^2$$
-
-
-Just getting started with Markdown?
-See the [HTML <-> Markdown Quick Reference (Cheat Sheet)][quickref].
-
-
-[quickref]: https://github.com/mundimark/quickrefs/blob/master/HTML.md
+Our agent needs to defeat the final boss of the Minecraft world but fails to use his bow and arrow properly to shoot at the end crystals. 
+In order to reach his goal in defeating the ender dragon, our agent starts to train with his bow and arrow, adjusting for vertical and horizontal angles 
+as well as accomodating for different distances. Before he can advance to more difficult training, our agent begins with shooting at pigs at ground level 
+of varying distances. In the future, our agent will need to train with different heights in order to succeed in breaking end crystals. Check out our status 
+report to see how our agent performed in his first step towards the final boss!
+![](image.png)
