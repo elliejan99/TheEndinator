@@ -96,6 +96,9 @@ def get_mission_xml(low, high, size, phase, max_episode_steps):
                             <Item reward="-1" type="arrow"/>
                         </RewardForDiscardingItem>
                         <ContinuousMovementCommands/>
+                        <ObservationFromNearbyEntities>
+                            <Range name="NearbyEntities" xrange="15" yrange="10" zrange="15"/>
+                        </ObservationFromNearbyEntities>
                         <ObservationFromFullStats/>
                         <ObservationFromRay/>
                         <AgentQuitFromReachingCommandQuota total="''' + str(max_episode_steps * 3) + '''" />
