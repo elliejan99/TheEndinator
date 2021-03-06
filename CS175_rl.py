@@ -207,7 +207,8 @@ class TheEndinator(gym.Env):
                 observations = json.loads(msg)
 
                 # Get observation
-
+                print(Observations)
+                nearby_entities = observations['NearbyEntities']
 
                 # Rotate observation with orientation of agent
                 yaw = observations['Yaw']
