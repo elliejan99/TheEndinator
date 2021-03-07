@@ -47,64 +47,67 @@ def build_pillar(low, high, phase):
 
 def get_mission_xml(low, high, size, phase, max_episode_steps):
     return '''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-            <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                
-                <About>
-                    <Summary>Diamond Collector</Summary>
-                </About>
-                <ServerSection>
-                    <ServerInitialConditions>
-                        <Time>
-                            <StartTime>1000</StartTime>
-                            <AllowPassageOfTime>false</AllowPassageOfTime>
-                        </Time>
-                        <AllowSpawning> true </AllowSpawning>
-                        <AllowedMobs> Pig </AllowedMobs>
-                        <Weather>clear</Weather>
-                    </ServerInitialConditions>
-                    <ServerHandlers>
-                        <FlatWorldGenerator generatorString="3;7,2;1;"/>
-                        <DrawingDecorator>''' + \
-                        "<DrawCuboid x1='{}' x2='{}' y1='-20' y2='20' z1='{}' z2='{}' type='air'/>".format(-size, size,
-                                                                                                            -size, size) + \
-                        "".join(build_pillar(low, high, phase)) + \
-                        '''<DrawBlock x='0'  y='6' z='0' type='air' />
-                            <DrawBlock x='0'  y='5' z='0' type='stone' />
-                        </DrawingDecorator>
-                        <ServerQuitWhenAnyAgentFinishes/>
-                    </ServerHandlers>
-                </ServerSection>
+             <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-                <MissionQuitCommands>
-                    <command> value="quit" </command>
-                </MissionQuitCommands>
+                 <About>
+                     <Summary>Diamond Collector</Summary>
+                 </About>
 
-                <AgentSection mode="Survival">
-                    <Name>The Endinator</Name>
-                    <AgentStart>
-                        <Placement x="0.5" y="6" z="0.5" pitch="0" yaw="0"/>
-                        <Inventory>
-                            <InventoryItem slot="0" type="bow"/>
-                            <InventoryItem slot="1" type="arrow" quantity="64"/>
-                        </Inventory>
-                    </AgentStart>
-                    <AgentHandlers>
-                        <RewardForDamagingEntity>
-                            <Mob reward="10" type="Pig"/>
-                        </RewardForDamagingEntity>            
-                        <RewardForDiscardingItem>
-                            <Item reward="-1" type="arrow"/>
-                        </RewardForDiscardingItem>
-                        <ContinuousMovementCommands/>
-                        <ObservationFromNearbyEntities>
-                            <Range name="NearbyEntities" xrange="15" yrange="10" zrange="15"/>
-                        </ObservationFromNearbyEntities>
-                        <ObservationFromFullStats/>
-                        <ObservationFromRay/>
-                        <AgentQuitFromReachingCommandQuota total="''' + str(max_episode_steps * 3) + '''" />
-                        <AgentQuitFromTouchingBlockType>
-                            <Block type="bedrock" />
-                        </AgentQuitFromTouchingBlockType>
-                    </AgentHandlers>
-                </AgentSection>
-            </Mission>'''                                        
+                 <ServerSection>
+                     <ServerInitialConditions>
+                         <Time>
+                             <StartTime>1000</StartTime>
+                             <AllowPassageOfTime>false</AllowPassageOfTime>
+                         </Time>
+                         <AllowSpawning> true </AllowSpawning>
+                         <AllowedMobs> Pig </AllowedMobs>
+                         <Weather>clear</Weather>
+                     </ServerInitialConditions>
+                     <ServerHandlers>
+                         <FlatWorldGenerator generatorString="3;7,2;1;"/>
+                         <DrawingDecorator>
+                            <DrawSphere x="0" y="60" z="0" radius="40" type="stone"/>
+                            <DrawSphere x="0" y="60" z="0" radius="38" type="air"/>
+                            <DrawBlock x='0'  y='60' z='0' type='air' />
+                            <DrawBlock x='0'  y='59' z='0' type='glowstone' />
+                         ''' + \
+           "".join(build_pillar(low, high, phase)) + \
+           '''
+           </DrawingDecorator>
+           <ServerQuitWhenAnyAgentFinishes/>
+       </ServerHandlers>
+   </ServerSection>
+
+   <AgentSection mode="Survival">
+       <Name>The Endinator</Name>
+       <AgentStart>
+           <Placement x="0.5" y="60" z="0.5" pitch="0" yaw="0"/>
+           <Inventory>
+               <InventoryItem slot="0" type="bow"/>
+               <InventoryItem slot="1" type="arrow" quantity="64"/>
+
+           </Inventory>
+       </AgentStart>
+       <AgentHandlers>
+           <RewardForDamagingEntity>
+               <Mob reward="10" type="Pig"/>
+           </RewardForDamagingEntity>
+           <RewardForCollectingItem>
+               <Item reward="10" type="diamond"/>
+           </RewardForCollectingItem>               
+           <RewardForDiscardingItem>
+               <Item reward="-1" type="arrow"/>
+           </RewardForDiscardingItem>
+           <ContinuousMovementCommands/>
+           <ObservationFromFullStats/>
+           <ObservationFromRay/>
+           <ObservationFromNearbyEntities>
+                <Range name="NearbyEntities" xrange="30" yrange="30" zrange="30" />
+           </ObservationFromNearbyEntities>
+           <AgentQuitFromReachingCommandQuota total="''' + str(max_episode_steps * 3) + '''" />
+                         <AgentQuitFromTouchingBlockType>
+                             <Block type="bedrock" />
+                         </AgentQuitFromTouchingBlockType>
+                     </AgentHandlers>
+                 </AgentSection>
+             </Mission>'''

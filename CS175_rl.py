@@ -16,7 +16,9 @@ import gym, ray
 from gym.spaces import Discrete, Box
 from ray.rllib.agents import ppo
 
+from sklearn.preprocessing import normalize
 from phases import get_mission_xml
+import vectormath as vmath
 
 class TheEndinator(gym.Env):
 
@@ -25,16 +27,16 @@ class TheEndinator(gym.Env):
         self.size = 50
         self.reward_density = .1
         self.penalty_density = .02
-        self.obs_size = 4
+        self.obs_size = 8
         self.max_episode_steps = 100
-        self.log_frequency = 10
+        self.log_frequency = 2
 
         self.low = -10
         self.high = 10
         self.phase = 0
-        
+
         # Rllib Parameters #pitch, turn, use
-        self.action_space = Box(-1, 1, shape=(3,), dtype=np.float32)
+        self.action_space = Box(-1/3, 1/3, shape=(3,), dtype=np.float32)
         self.observation_space = Box(-360, 360, shape=(self.obs_size,), dtype=np.float32)
 
         # Malmo Parameters
@@ -77,11 +79,11 @@ class TheEndinator(gym.Env):
 
         # Log
         if len(self.returns) > self.log_frequency + 1 and \
-            len(self.returns) % self.log_frequency == 0:
+                len(self.returns) % self.log_frequency == 0:
             self.log_returns()
 
         # Get Observation
-        self.obs, self.allow_shoot = self.get_observation(world_state)
+        self.obs, self.allow_shoot, norm = self.get_observation(world_state)
 
         return self.obs
 
@@ -117,7 +119,7 @@ class TheEndinator(gym.Env):
                 time.sleep(1.1)
 
                 self.agent_host.sendCommand('use 0')
-                
+
             else:
                 self.agent_host.sendCommand('use {}'.format(shoot))
                 self.agent_host.sendCommand('pitch {}'.format(action[0]))
@@ -130,13 +132,18 @@ class TheEndinator(gym.Env):
         world_state = self.agent_host.getWorldState()
         for error in world_state.errors:
             print("Error:", error.text)
-        self.obs, self.allow_shoot = self.get_observation(world_state)
+        self.obs, self.allow_shoot, norm = self.get_observation(world_state)
 
         # Get Done
         done = not world_state.is_mission_running
 
         # Get Reward
+
         reward = 0
+        if not self.allow_shoot:
+            reward += norm
+        elif self.allow_shoot:
+            reward += 1
         for r in world_state.rewards:
             reward += r.getValue()
         self.episode_return += reward
@@ -149,20 +156,21 @@ class TheEndinator(gym.Env):
         """
         Initialize new malmo mission.
         """
-        #TODO change which get_mission_xml is called based on a measure for success 
+        # TODO change which get_mission_xml is called based on a measure for success
 
-        my_mission = MalmoPython.MissionSpec(get_mission_xml(self.low, self.high, self.size, self.phase, self.max_episode_steps), True)
+        my_mission = MalmoPython.MissionSpec(
+            get_mission_xml(self.low, self.high, self.size, self.phase, self.max_episode_steps), True)
         my_mission_record = MalmoPython.MissionRecordSpec()
         my_mission.requestVideo(800, 500)
         my_mission.setViewpoint(0)
 
         max_retries = 3
         my_clients = MalmoPython.ClientPool()
-        my_clients.add(MalmoPython.ClientInfo('127.0.0.1', 10000)) # add Minecraft machines here as available
+        my_clients.add(MalmoPython.ClientInfo('127.0.0.1', 10000))  # add Minecraft machines here as available
 
         for retry in range(max_retries):
             try:
-                self.agent_host.startMission( my_mission, my_clients, my_mission_record, 0, 'TheEndinator' )
+                self.agent_host.startMission(my_mission, my_clients, my_mission_record, 0, 'TheEndinator')
                 break
             except RuntimeError as e:
                 if retry == max_retries - 1:
@@ -192,7 +200,7 @@ class TheEndinator(gym.Env):
             observation: <np.array> the state observation
             allow_break_action: <bool> whether the agent is facing a diamond
         """
-        obs = np.zeros((self.obs_size, ))
+        obs = np.zeros((self.obs_size,))
         allow_shoot = False
 
         while world_state.is_mission_running:
@@ -207,30 +215,55 @@ class TheEndinator(gym.Env):
                 observations = json.loads(msg)
 
                 # Get observation
-                print(Observations)
-                nearby_entities = observations['NearbyEntities']
 
                 # Rotate observation with orientation of agent
                 yaw = observations['Yaw']
                 distance = -1
                 obs = obs.flatten()
+                #print(observations)
                 try:
                     allow_shoot = observations['LineOfSight']['type'] == 'Pig'
-                    distance = observations['LineOfSight']['distance']
                 except:
                     pass
 
                 self.pitch = observations['Pitch']
                 self.yaw = observations['Yaw']
-                obs[0] = self.pitch
-                obs[1] = self.yaw
-                obs[2] = distance
-                obs[3] = allow_shoot
+                obs[2] = allow_shoot
+
+
+                agent_pos = np.array([observations['XPos'],observations['YPos'],observations['ZPos']])
+                agent_dir = np.array([observations['LineOfSight']['x'], observations['LineOfSight']['y'], observations['LineOfSight']['z']]) - agent_pos
+                pig_pos = np.array([0, 0, 0])
+                for entity in observations['NearbyEntities']:
+                    if entity['name'] == 'Pig':
+                        pig_pos = np.array([entity['x'],entity['y'],entity['z']])
+                        obs[0] = self.dot_agent_pig(pig_pos - agent_pos, agent_dir)
+                        break
+                    #self.agent_host.sendCommand("quit")
+
+                # distance
+                obs[1] = np.linalg.norm(pig_pos-agent_pos)
+                obs[3] = self.yaw
+                obs[4] = self.pitch
+                obs[5] = pig_pos[0]
+                obs[6] = pig_pos[1]
+                obs[7] = pig_pos[2]
                 print(obs)
 
                 break
 
-        return obs, allow_shoot
+        return obs, allow_shoot, obs[1]
+
+    def dot_agent_pig(self, pig_dir, agent_dir):
+        pig_norm = np.linalg.norm(pig_dir)
+        agent_norm = np.linalg.norm(agent_dir)
+        print("pig direction: ", pig_dir/ pig_norm)
+        print("agent direction: ", agent_dir/ agent_norm)
+        if agent_norm == 0:
+            return np.dot(pig_dir/ pig_norm, agent_dir)
+
+
+        return np.dot(pig_dir/ pig_norm, agent_dir/ agent_norm)
 
     def log_returns(self):
         """
@@ -251,27 +284,28 @@ class TheEndinator(gym.Env):
 
         with open('returns.txt', 'w') as f:
             for step, value in zip(self.steps[1:], self.returns[1:]):
-                f.write("{}\t{}\n".format(step, value)) 
+                f.write("{}\t{}\n".format(step, value))
 
     def set_phase(self, phase):
         self.phase = phase
 
+
 if __name__ == '__main__':
     ray.init()
     trainer = ppo.PPOTrainer(env=TheEndinator, config={
-        'env_config': {},           # No environment parameters to configure
-        'framework': 'torch',       # Use pyotrch instead of tensorflow
-        'num_gpus': 0,              # We aren't using GPUs
-        'num_workers': 0,            # We aren't using parallelism
+        'env_config': {},  # No environment parameters to configure
+        'framework': 'torch',  # Use pyotrch instead of tensorflow
+        'num_gpus': 0,  # We aren't using GPUs
+        'num_workers': 0,  # We aren't using parallelism
         'optimizer': {}
     })
 
-    #import the model from file
+    # import the model from file
     try:
         trainer.import_model("my_weights.h5")
     except:
         print("No preview weights recorded")
-    
+
     for i in range(1000):
         # Perform one iteration of training the policy with PPO
         result = trainer.train()
@@ -286,7 +320,7 @@ if __name__ == '__main__':
             lambda ev: ev.foreach_env(
                 lambda env: env.set_phase(phase)))
 
-        #every 100 episodes we save the data
+        # every 100 episodes we save the data
         if i % 100 == 0:
             checkpoint = trainer.save()
             print("checkpoint saved at", checkpoint)
