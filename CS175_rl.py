@@ -16,9 +16,9 @@ import gym, ray
 from gym.spaces import Discrete, Box
 from ray.rllib.agents import ppo
 
-from sklearn.preprocessing import normalize
+#from sklearn.preprocessing import normalize
 from phases import get_mission_xml
-import vectormath as vmath
+#import vectormath as vmath
 
 class TheEndinator(gym.Env):
 
@@ -31,8 +31,8 @@ class TheEndinator(gym.Env):
         self.max_episode_steps = 100
         self.log_frequency = 2
 
-        self.low = -10
-        self.high = 10
+        self.low = -20
+        self.high = 20
         self.phase = 0
 
         # Rllib Parameters #pitch, turn, use
@@ -303,6 +303,7 @@ if __name__ == '__main__':
     # import the model from file
     try:
         trainer.import_model("my_weights.h5")
+        #trainer.restore(checkpoint)
     except:
         print("No preview weights recorded")
 
