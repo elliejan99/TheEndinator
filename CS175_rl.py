@@ -14,17 +14,18 @@ from numpy.random import randint
 
 import gym, ray
 from gym.spaces import Discrete, Box
-from ray.rllib.agents import ppo
+from ray.rllib.agents import ppo, dqn
 
 from phases import get_mission_xml
+
 
 class TheEndinator(gym.Env):
 
     def __init__(self, env_config):
         # Static Parameters
         self.size = 50
-        #self.reward_density = .1
-        #self.penalty_density = .02
+        # self.reward_density = .1
+        # self.penalty_density = .02
         self.obs_size = 8
         self.max_episode_steps = 100
         self.log_frequency = 2
@@ -33,7 +34,7 @@ class TheEndinator(gym.Env):
         self.phase = 0
 
         # Rllib Parameters #pitch, turn, use
-        self.action_space = Box(-1/3, 1/3, shape=(3,), dtype=np.float32)
+        self.action_space = Box(-1 / 3, 1 / 3, shape=(3,), dtype=np.float32)
         self.observation_space = Box(-360, 360, shape=(self.obs_size,), dtype=np.float32)
 
         # Malmo Parameters
@@ -97,6 +98,10 @@ class TheEndinator(gym.Env):
             done: <bool> indicates terminal state
             info: <dict> dictionary of extra information
         """
+
+        #yaw can be between 60 and -60
+        #pitch can be 40 and -40
+
         # return action to be performed and the reward
         # this function can get the action, perform it, and calculate the reward that it gives
 
@@ -118,10 +123,26 @@ class TheEndinator(gym.Env):
                 self.agent_host.sendCommand('use 0')
 
             else:
-                self.agent_host.sendCommand('use {}'.format(shoot))
-                self.agent_host.sendCommand('pitch {}'.format(action[0]))
-                self.agent_host.sendCommand('turn {}'.format(action[1]))
-                time.sleep(.1)
+                pitch_condition = self.pitch >= 60 and action[0] > 0 or self.pitch <= -60 and action[0] < 0
+                yaw_condition = self.yaw >= 60 and action[1] > 0 or self.yaw <= -60 and action[1] < 0
+                if pitch_condition and yaw_condition:
+                    self.agent_host.sendCommand('pitch 0')
+                    self.agent_host.sendCommand('turn 0')
+                    self.agent_host.sendCommand('use {}'.format(shoot))
+                elif pitch_condition:
+                    self.agent_host.sendCommand('pitch 0')
+                    self.agent_host.sendCommand('turn {}'.format(action[1]))
+                    self.agent_host.sendCommand('use {}'.format(shoot))
+                elif yaw_condition:
+                    self.agent_host.sendCommand('turn 0')
+                    self.agent_host.sendCommand('pitch {}'.format(action[0]))
+                    self.agent_host.sendCommand('use {}'.format(shoot))
+                else:
+                    self.agent_host.sendCommand('pitch {}'.format(action[0]))
+                    self.agent_host.sendCommand('turn {}'.format(action[1]))
+                    self.agent_host.sendCommand('use {}'.format(shoot))
+
+                time.sleep(.02)
 
         self.episode_step += 1
 
@@ -145,8 +166,6 @@ class TheEndinator(gym.Env):
             reward += r.getValue()
         self.episode_return += reward
 
-        if reward >= 10:
-            self.agent_host.sendCommand("quit")
 
         return self.obs, reward, done, dict()
 
@@ -155,7 +174,6 @@ class TheEndinator(gym.Env):
         Initialize new malmo mission.
         """
         # TODO change which get_mission_xml is called based on a measure for success
-
         my_mission = MalmoPython.MissionSpec(
             get_mission_xml(self.num_mobs_killed, self.size, self.phase, self.max_episode_steps), True)
         my_mission_record = MalmoPython.MissionRecordSpec()
@@ -211,15 +229,16 @@ class TheEndinator(gym.Env):
                 # First we get the json from the observation API
                 msg = world_state.observations[-1].text
                 observations = json.loads(msg)
-                #print(observations)
+                # print(observations)
 
                 # Get observation
-                #if observations['MobsKilled'] > self.num_mobs_killed:
+                # if observations['MobsKilled'] > self.num_mobs_killed:
                 self.num_mobs_killed = observations['MobsKilled']
-                        #self.agent_host.sendCommand("quit")
-                        
+                # self.agent_host.sendCommand("quit")
+
                 # Rotate observation with orientation of agent
                 yaw = observations['Yaw']
+                print(observations)
                 distance = -1
                 obs = obs.flatten()
                 try:
@@ -232,24 +251,28 @@ class TheEndinator(gym.Env):
                 obs[2] = allow_shoot
 
                 try:
-                    agent_pos = np.array([observations['XPos'],observations['YPos'],observations['ZPos']])
-                    agent_dir = np.array([observations['LineOfSight']['x'], observations['LineOfSight']['y'], observations['LineOfSight']['z']]) - agent_pos
+                    agent_pos = np.array([observations['XPos'], observations['YPos'], observations['ZPos']])
+                    agent_dir = np.array([observations['LineOfSight']['x'], observations['LineOfSight']['y'],
+                                          observations['LineOfSight']['z']]) - agent_pos
                     pig_pos = np.array([0, 0, 0])
+                    found_pig = False
                     for entity in observations['NearbyEntities']:
                         if entity['name'] == 'Pig':
-                            pig_pos = np.array([entity['x'],entity['y'],entity['z']])
+                            found_pig = True
+                            pig_pos = np.array([entity['x'], entity['y'], entity['z']])
                             obs[0] = self.dot_agent_pig(pig_pos - agent_pos, agent_dir)
                             break
-                        #self.agent_host.sendCommand("quit")
 
+                    if not found_pig:
+                        self.agent_host.sendCommand("quit")
                     # distance
-                    obs[1] = np.linalg.norm(pig_pos-agent_pos)
+                    obs[1] = np.linalg.norm(pig_pos - agent_pos)
                     obs[3] = self.yaw
                     obs[4] = self.pitch
                     obs[5] = pig_pos[0]
                     obs[6] = pig_pos[1]
                     obs[7] = pig_pos[2]
-                    #print(obs)
+                    print("Pitch: ", self.pitch, " Yaw: ", self.yaw)
                 except:
                     pass
 
@@ -260,13 +283,10 @@ class TheEndinator(gym.Env):
     def dot_agent_pig(self, pig_dir, agent_dir):
         pig_norm = np.linalg.norm(pig_dir)
         agent_norm = np.linalg.norm(agent_dir)
-        print("pig direction: ", pig_dir/ pig_norm)
-        print("agent direction: ", agent_dir/ agent_norm)
         if agent_norm == 0:
-            return np.dot(pig_dir/ pig_norm, agent_dir)
+            return np.dot(pig_dir / pig_norm, agent_dir)
 
-
-        return np.dot(pig_dir/ pig_norm, agent_dir/ agent_norm)
+        return np.dot(pig_dir / pig_norm, agent_dir / agent_norm)
 
     def log_returns(self):
         """
@@ -302,11 +322,10 @@ if __name__ == '__main__':
         'num_workers': 0,  # We aren't using parallelism
         'optimizer': {}
     })
-
     # import the model from file
     try:
         trainer.import_model("my_weights.h5")
-        #trainer.restore(checkpoint)
+        # trainer.restore(checkpoint)
     except:
         print("No preview weights recorded")
 
