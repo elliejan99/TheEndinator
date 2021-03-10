@@ -68,6 +68,7 @@ def get_mission_xml(low, high, size, phase, max_episode_steps):
                         <DrawingDecorator>
                             <DrawSphere x="0" y="60" z="0" radius="40" type="stone"/>
                             <DrawSphere x="0" y="60" z="0" radius="38" type="air"/>
+                            <DrawBlock x='1' y='60' z='-1' type='bedrock' />
                             <DrawBlock x='0'  y='60' z='0' type='air' />
                             <DrawBlock x='0'  y='59' z='0' type='glowstone' />
                          ''' + \
