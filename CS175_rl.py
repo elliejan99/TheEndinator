@@ -215,7 +215,9 @@ class TheEndinator(gym.Env):
                 observations = json.loads(msg)
 
                 # Get observation
-
+                if observations['LineOfSight']['MobsKilled'] == self.num_mobs_killed + 1:
+                        self.num_mobs_killed = observations['LineOfSight']['MobsKilled']
+                        self.agent_host.sendCommand("move -1")
                 # Rotate observation with orientation of agent
                 yaw = observations['Yaw']
                 distance = -1
