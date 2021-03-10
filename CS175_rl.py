@@ -16,23 +16,20 @@ import gym, ray
 from gym.spaces import Discrete, Box
 from ray.rllib.agents import ppo
 
-#from sklearn.preprocessing import normalize
 from phases import get_mission_xml
-#import vectormath as vmath
 
 class TheEndinator(gym.Env):
 
     def __init__(self, env_config):
         # Static Parameters
         self.size = 50
-        self.reward_density = .1
-        self.penalty_density = .02
+        #self.reward_density = .1
+        #self.penalty_density = .02
         self.obs_size = 8
         self.max_episode_steps = 100
         self.log_frequency = 2
 
-        self.low = -20
-        self.high = 20
+        self.num_mobs_killed = 0
         self.phase = 0
 
         # Rllib Parameters #pitch, turn, use
@@ -147,7 +144,8 @@ class TheEndinator(gym.Env):
         for r in world_state.rewards:
             reward += r.getValue()
         self.episode_return += reward
-        if reward > 0:
+
+        if reward >= 10:
             self.agent_host.sendCommand("quit")
 
         return self.obs, reward, done, dict()
@@ -159,7 +157,7 @@ class TheEndinator(gym.Env):
         # TODO change which get_mission_xml is called based on a measure for success
 
         my_mission = MalmoPython.MissionSpec(
-            get_mission_xml(self.low, self.high, self.size, self.phase, self.max_episode_steps), True)
+            get_mission_xml(self.num_mobs_killed, self.size, self.phase, self.max_episode_steps), True)
         my_mission_record = MalmoPython.MissionRecordSpec()
         my_mission.requestVideo(800, 500)
         my_mission.setViewpoint(0)
@@ -213,16 +211,17 @@ class TheEndinator(gym.Env):
                 # First we get the json from the observation API
                 msg = world_state.observations[-1].text
                 observations = json.loads(msg)
+                #print(observations)
 
                 # Get observation
-                if observations['LineOfSight']['MobsKilled'] == self.num_mobs_killed + 1:
-                        self.num_mobs_killed = observations['LineOfSight']['MobsKilled']
-                        self.agent_host.sendCommand("move -1")
+                #if observations['MobsKilled'] > self.num_mobs_killed:
+                self.num_mobs_killed = observations['MobsKilled']
+                        #self.agent_host.sendCommand("quit")
+                        
                 # Rotate observation with orientation of agent
                 yaw = observations['Yaw']
                 distance = -1
                 obs = obs.flatten()
-                #print(observations)
                 try:
                     allow_shoot = observations['LineOfSight']['type'] == 'Pig'
                 except:
@@ -232,25 +231,27 @@ class TheEndinator(gym.Env):
                 self.yaw = observations['Yaw']
                 obs[2] = allow_shoot
 
+                try:
+                    agent_pos = np.array([observations['XPos'],observations['YPos'],observations['ZPos']])
+                    agent_dir = np.array([observations['LineOfSight']['x'], observations['LineOfSight']['y'], observations['LineOfSight']['z']]) - agent_pos
+                    pig_pos = np.array([0, 0, 0])
+                    for entity in observations['NearbyEntities']:
+                        if entity['name'] == 'Pig':
+                            pig_pos = np.array([entity['x'],entity['y'],entity['z']])
+                            obs[0] = self.dot_agent_pig(pig_pos - agent_pos, agent_dir)
+                            break
+                        #self.agent_host.sendCommand("quit")
 
-                agent_pos = np.array([observations['XPos'],observations['YPos'],observations['ZPos']])
-                agent_dir = np.array([observations['LineOfSight']['x'], observations['LineOfSight']['y'], observations['LineOfSight']['z']]) - agent_pos
-                pig_pos = np.array([0, 0, 0])
-                for entity in observations['NearbyEntities']:
-                    if entity['name'] == 'Pig':
-                        pig_pos = np.array([entity['x'],entity['y'],entity['z']])
-                        obs[0] = self.dot_agent_pig(pig_pos - agent_pos, agent_dir)
-                        break
-                    #self.agent_host.sendCommand("quit")
-
-                # distance
-                obs[1] = np.linalg.norm(pig_pos-agent_pos)
-                obs[3] = self.yaw
-                obs[4] = self.pitch
-                obs[5] = pig_pos[0]
-                obs[6] = pig_pos[1]
-                obs[7] = pig_pos[2]
-                print(obs)
+                    # distance
+                    obs[1] = np.linalg.norm(pig_pos-agent_pos)
+                    obs[3] = self.yaw
+                    obs[4] = self.pitch
+                    obs[5] = pig_pos[0]
+                    obs[6] = pig_pos[1]
+                    obs[7] = pig_pos[2]
+                    #print(obs)
+                except:
+                    pass
 
                 break
 
