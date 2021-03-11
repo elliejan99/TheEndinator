@@ -5,6 +5,9 @@ try:
 except:
     import MalmoPython
 
+import os
+import shutil
+
 import sys
 import time
 import json
@@ -24,8 +27,6 @@ class TheEndinator(gym.Env):
     def __init__(self, env_config):
         # Static Parameters
         self.size = 50
-        # self.reward_density = .1
-        # self.penalty_density = .02
         self.obs_size = 8
         self.max_episode_steps = 100
         self.log_frequency = 2
@@ -61,7 +62,6 @@ class TheEndinator(gym.Env):
     def reset(self):
         """
         Resets the environment for the next episode.
-
         Returns
             observation: <np.array> flattened initial obseravtion
         """
@@ -88,10 +88,8 @@ class TheEndinator(gym.Env):
     def step(self, action):
         """
         Take an action in the environment and return the results.
-
         Args
             action: <int> index of the action to take
-
         Returns
             observation: <np.array> flattened array of obseravtion
             reward: <int> reward from taking action
@@ -208,10 +206,8 @@ class TheEndinator(gym.Env):
         """
         Use the agent observation API to get a flattened 2 x 5 x 5 grid around the agent.
         The agent is in the center square facing up.
-
         Args
             world_state: <object> current agent world state
-
         Returns
             observation: <np.array> the state observation
             allow_break_action: <bool> whether the agent is facing a diamond
@@ -229,7 +225,6 @@ class TheEndinator(gym.Env):
                 # First we get the json from the observation API
                 msg = world_state.observations[-1].text
                 observations = json.loads(msg)
-                # print(observations)
 
                 # Get observation
                 # if observations['MobsKilled'] > self.num_mobs_killed:
@@ -291,7 +286,6 @@ class TheEndinator(gym.Env):
     def log_returns(self):
         """
         Log the current returns as a graph and text file
-
         Args:
             steps (list): list of global steps after each episode
             returns (list): list of total return of each episode
@@ -314,6 +308,13 @@ class TheEndinator(gym.Env):
 
 
 if __name__ == '__main__':
+    #directory to save checkpoints and write logs
+    checkpoint_root = "tmp/exa"
+    shutil.rmtree(checkpoint_root, ignore_errors=True, onerror=None)
+
+    ray_results = "{}/ray_result/".format(os.getenv("HOME"))
+    shutil.rmtree(ray_results, ignore_errors=True, onerror=None)
+    
     ray.init()
     trainer = ppo.PPOTrainer(env=TheEndinator, config={
         'env_config': {},  # No environment parameters to configure
@@ -325,13 +326,25 @@ if __name__ == '__main__':
     # import the model from file
     try:
         trainer.import_model("my_weights.h5")
-        # trainer.restore(checkpoint)
+        trainer.restore(checkpoint_file)
     except:
         print("No preview weights recorded")
 
     for i in range(1000):
         # Perform one iteration of training the policy with PPO
+        print("BEFORE AGENT STARTS TRAINING")
         result = trainer.train()
+        print("SAVE CHECKPOINT")
+
+        #save checkpoint and print results for every episode
+        checkpoint_file = trainer.save(checkpoint_root)
+        print(i+1, result["episode_reward_min"],
+              result["episode_reward_mean"],
+              result["episode_reward_max"],
+              checkpoint_file)
+        
+        print("checkpoint saved at", checkpoint)
+            
         if result["episode_reward_mean"] > 100:
             phase = 2
         elif result["episode_reward_mean"] > 50:
@@ -344,6 +357,14 @@ if __name__ == '__main__':
                 lambda env: env.set_phase(phase)))
 
         # every 100 episodes we save the data
+        '''
         if i % 100 == 0:
-            checkpoint = trainer.save()
+            checkpoint_file = trainer.save(checkpoint_root)
+            print(status.format(n+1, result["episode_reward_min"],
+                                result["episode_reward_mean"],
+                                result["episode_reward_max"],
+                                checkpoint_file))
+                            
             print("checkpoint saved at", checkpoint)
+        '''
+
