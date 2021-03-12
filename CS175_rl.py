@@ -14,6 +14,7 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.random import randint
+import math
 
 import gym, ray
 from gym.spaces import Discrete, Box
@@ -30,9 +31,6 @@ class TheEndinator(gym.Env):
         self.obs_size = 8
         self.max_episode_steps = 100
         self.log_frequency = 2
-
-        self.num_mobs_killed = 0
-        self.phase = 0
 
         # Rllib Parameters #pitch, turn, use
         self.action_space = Box(-1 / 3, 1 / 3, shape=(3,), dtype=np.float32)
@@ -52,12 +50,18 @@ class TheEndinator(gym.Env):
         self.allow_shoot = False
         self.pitch = 0
         self.yaw = 0
+        self.num_mobs_killed = 0
+        self.phase = 0
+
+        #Logging Parameters
+        self.steps = []
+        self.returns = []
         self.episode_step = 0
         self.episode_return = 0
-        self.returns = []
-        self.steps = []
-        self.tick = 30
         self.episode_reward_mean = 0
+        self.distance = 0
+        self.start_time = 0
+        self.end_time = 0
 
     def reset(self):
         """
@@ -75,13 +79,20 @@ class TheEndinator(gym.Env):
         self.episode_return = 0
         self.episode_step = 0
 
+        if self.end_time < self.start_time:
+            self.end_time = time.time()
+
         # Log
+        with open('timeTaken.txt', 'w') as f:
+            f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance, self.start_time, self.end_time, self.end_time - self.start_time))
+
         if len(self.returns) > self.log_frequency + 1 and \
                 len(self.returns) % self.log_frequency == 0:
             self.log_returns()
 
         # Get Observation
-        self.obs, self.allow_shoot, norm = self.get_observation(world_state)
+        self.obs, self.allow_shoot, _ = self.get_observation(world_state)
+        self.start_time = time.time()
 
         return self.obs
 
@@ -154,7 +165,6 @@ class TheEndinator(gym.Env):
         done = not world_state.is_mission_running
 
         # Get Reward
-
         reward = 0
         if not self.allow_shoot:
             reward += norm
@@ -164,6 +174,11 @@ class TheEndinator(gym.Env):
             reward += r.getValue()
         self.episode_return += reward
 
+        #Log yaw/distance shoot attempt
+        if self.allow_shoot and shoot == 1:
+            distance = math.sqrt((self.obs[7])**2 + (self.obs[6] - 60)**2)
+            with open('yawDistance.txt', 'w') as f:
+                f.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.phase, distance, self.obs[3], self.episode_return, done))
 
         return self.obs, reward, done, dict()
 
@@ -171,7 +186,6 @@ class TheEndinator(gym.Env):
         """
         Initialize new malmo mission.
         """
-        # TODO change which get_mission_xml is called based on a measure for success
         my_mission = MalmoPython.MissionSpec(
             get_mission_xml(self.num_mobs_killed, self.size, self.phase, self.max_episode_steps), True)
         my_mission_record = MalmoPython.MissionRecordSpec()
@@ -227,22 +241,19 @@ class TheEndinator(gym.Env):
                 observations = json.loads(msg)
 
                 # Get observation
-                # if observations['MobsKilled'] > self.num_mobs_killed:
                 self.num_mobs_killed = observations['MobsKilled']
-                # self.agent_host.sendCommand("quit")
+                self.pitch = observations['Pitch']
+                self.yaw = observations['Yaw']
 
                 # Rotate observation with orientation of agent
-                yaw = observations['Yaw']
                 print(observations)
-                distance = -1
                 obs = obs.flatten()
+
                 try:
                     allow_shoot = observations['LineOfSight']['type'] == 'Pig'
                 except:
                     pass
-
-                self.pitch = observations['Pitch']
-                self.yaw = observations['Yaw']
+            
                 obs[2] = allow_shoot
 
                 try:
@@ -259,7 +270,9 @@ class TheEndinator(gym.Env):
                             break
 
                     if not found_pig:
+                        self.end_time = time.time()
                         self.agent_host.sendCommand("quit")
+
                     # distance
                     obs[1] = np.linalg.norm(pig_pos - agent_pos)
                     obs[3] = self.yaw

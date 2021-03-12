@@ -7,7 +7,7 @@ import numpy as np
 def build_pillar(distance, phase):
     res = []
 
-    #Num_mobs_killed + 2 (adjustable)
+    #Num_mobs_killed + 1 (adjustable)
     distance += 1
 
     #MAX limit
