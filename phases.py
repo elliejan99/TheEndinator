@@ -13,6 +13,9 @@ def build_pillar(distance, phase):
     #MAX limit
     if distance > 29:
         distance = 29
+        
+    if height > 20:
+        height = 20
 
     if phase == 0:
         s = "<DrawBlock x='1'  y='60' z='{z}' type='glowstone'/>".format(z=distance)
@@ -22,7 +25,7 @@ def build_pillar(distance, phase):
         res.append(s)
         
     elif phase == 1:
-        y = 60 + distance
+        y = 60 + height
         for i in range(60, y):
             s = "<DrawBlock x='1'  y='{y}' z='5' type='glowstone'/>".format(y=i)
             res.append(s)
@@ -32,7 +35,7 @@ def build_pillar(distance, phase):
         
     else:
         z = np.random.randint(1, distance)
-        y = np.random.randint(60, 60+distance)
+        y = np.random.randint(60, 60+height)
         
         for i in range(60, y+1):
             s = "<DrawBlock x='1'  y='{y}' z='{z}' type='glowstone'/>".format(y=i, z=z)
