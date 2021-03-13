@@ -62,6 +62,8 @@ class TheEndinator(gym.Env):
         self.distance = 0
         self.start_time = 0
         self.end_time = 0
+        self.time_taken = [] #record time taken for each episode
+        self.num_arrows = 0 #maybe add number of arrows it takes to hit the pig?
 
     def reset(self):
         """
@@ -72,20 +74,24 @@ class TheEndinator(gym.Env):
         # Reset Malmo
         world_state = self.init_malmo()
 
-        # Reset Variables
+        # Reset Variables for Rewards
         self.returns.append(self.episode_return)
         current_step = self.steps[-1] if len(self.steps) > 0 else 0
         self.steps.append(current_step + self.episode_step)
         self.episode_return = 0
         self.episode_step = 0
 
+        #Reset Variables for Time Taken
         if self.end_time < self.start_time:
             self.end_time = time.time()
+        self.time_taken.append(self.end_time - self.start_time)
 
-        # Log
-        with open('timeTaken.txt', 'w') as f:
-            f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance, self.start_time, self.end_time, self.end_time - self.start_time))
-
+        #Log Time Taken
+        if len(self.time_taken) > self.log_frequency + 1 and \
+                len(self.time_taken) % self.log_frequency == 0:
+            self.log_time_taken()
+        
+        #Log Rewards
         if len(self.returns) > self.log_frequency + 1 and \
                 len(self.returns) % self.log_frequency == 0:
             self.log_returns()
@@ -295,6 +301,26 @@ class TheEndinator(gym.Env):
             return np.dot(pig_dir / pig_norm, agent_dir)
 
         return np.dot(pig_dir / pig_norm, agent_dir / agent_norm)
+    
+    def log_time_taken(self):
+        """
+        Log the current returns as a graph and text file
+        Args:
+            steps (list): list of global steps after each episode
+            returns (list): list of total return of each episode
+        """
+        box = np.ones(self.log_frequency) / self.log_frequency
+        time_taken_smooth = np.convolve(self.time_taken[1:], box, mode='same')
+        plt.clf()
+        plt.plot(self.steps[1:], time_taken_smooth)
+        plt.title('The Endinator')
+        plt.ylabel('Time Taken')
+        plt.xlabel('Steps')
+        plt.savefig('timeTaken.png')
+        
+        # Log
+        with open('timeTaken.txt', 'w') as f:
+            f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance, self.start_time, self.end_time, self.end_time - self.start_time))
 
     def log_returns(self):
         """
@@ -339,7 +365,7 @@ if __name__ == '__main__':
     # import the model from file
     try:
         trainer.import_model("my_weights.h5")
-        trainer.restore(checkpoint_file)
+        #trainer.restore(checkpoint_file)
     except:
         print("No preview weights recorded")
 
@@ -349,35 +375,25 @@ if __name__ == '__main__':
         result = trainer.train()
         print("SAVE CHECKPOINT")
 
-        #save checkpoint and print results for every episode
-        checkpoint_file = trainer.save(checkpoint_root)
-        print(i+1, result["episode_reward_min"],
-              result["episode_reward_mean"],
-              result["episode_reward_max"],
-              checkpoint_file)
-        
-        print("checkpoint saved at", checkpoint)
+        #save checkpoint and print results for 100 episodes
+        if i % 100 == 0:
+            checkpoint_file = trainer.save(checkpoint_root)
+            print(i+1, result["episode_reward_min"],
+                  result["episode_reward_mean"],
+                  result["episode_reward_max"],
+                  checkpoint_file)
             
-        if result["episode_reward_mean"] > 100:
+        if result["episode_reward_mean"] > 3000:
             phase = 2
-        elif result["episode_reward_mean"] > 50:
+            print("CHANGED TO PHASE 2")
+        elif result["episode_reward_mean"] > 2000:
             phase = 1
+            print("CHANGED TO PHASE 1")
         else:
             phase = 0
+            print("IN PHASE 0")
 
         trainer.workers.foreach_worker(
             lambda ev: ev.foreach_env(
                 lambda env: env.set_phase(phase)))
-
-        # every 100 episodes we save the data
-        '''
-        if i % 100 == 0:
-            checkpoint_file = trainer.save(checkpoint_root)
-            print(status.format(n+1, result["episode_reward_min"],
-                                result["episode_reward_mean"],
-                                result["episode_reward_max"],
-                                checkpoint_file))
-                            
-            print("checkpoint saved at", checkpoint)
-        '''
 
