@@ -59,11 +59,11 @@ class TheEndinator(gym.Env):
         self.episode_step = 0
         self.episode_return = 0
         self.episode_reward_mean = 0
-        self.distance = 0
+        self.distance = []
         self.start_time = 0
         self.end_time = 0
         self.time_taken = [] #record time taken for each episode
-        self.num_arrows = 0 #maybe add number of arrows it takes to hit the pig?
+        self.num_arrows = 0
 
     def reset(self):
         """
@@ -86,18 +86,24 @@ class TheEndinator(gym.Env):
             self.end_time = time.time()
         self.time_taken.append(self.end_time - self.start_time)
 
-        #Log Time Taken
+        #Log
         if len(self.time_taken) > self.log_frequency + 1 and \
                 len(self.time_taken) % self.log_frequency == 0:
             self.log_time_taken()
-        
-        #Log Rewards
-        if len(self.returns) > self.log_frequency + 1 and \
-                len(self.returns) % self.log_frequency == 0:
             self.log_returns()
+
+        with open('distanceTime.txt', 'w') as f:
+            f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.start_time, self.end_time, self.end_time - self.start_time))
+
+        with open('distanceArrows.txt', 'w') as f:
+            f.write("{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.num_arrows, self.episode_return))
+
+        with open('distanceYaw.txt', 'w') as f:
+            f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.phase, self.distance[-1], self.obs[3], self.episode_return))
 
         # Get Observation
         self.obs, self.allow_shoot, _ = self.get_observation(world_state)
+        self.distance.append(math.sqrt((self.obs[7])**2 + (self.obs[6] - 60)**2))
         self.start_time = time.time()
 
         return self.obs
@@ -180,12 +186,6 @@ class TheEndinator(gym.Env):
             reward += r.getValue()
         self.episode_return += reward
 
-        #Log yaw/distance shoot attempt
-        if self.allow_shoot and shoot == 1:
-            distance = math.sqrt((self.obs[7])**2 + (self.obs[6] - 60)**2)
-            with open('yawDistance.txt', 'w') as f:
-                f.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.phase, distance, self.obs[3], self.episode_return, done))
-
         return self.obs, reward, done, dict()
 
     def init_malmo(self):
@@ -250,9 +250,10 @@ class TheEndinator(gym.Env):
                 self.num_mobs_killed = observations['MobsKilled']
                 self.pitch = observations['Pitch']
                 self.yaw = observations['Yaw']
+                self.num_arrows = observations['Inventory_1_size']
 
                 # Rotate observation with orientation of agent
-                print(observations)
+                #print(observations)
                 obs = obs.flatten()
 
                 try:
@@ -317,10 +318,6 @@ class TheEndinator(gym.Env):
         plt.ylabel('Time Taken')
         plt.xlabel('Steps')
         plt.savefig('timeTaken.png')
-        
-        # Log
-        with open('timeTaken.txt', 'w') as f:
-            f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance, self.start_time, self.end_time, self.end_time - self.start_time))
 
     def log_returns(self):
         """

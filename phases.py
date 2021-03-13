@@ -9,7 +9,7 @@ def build_pillar(distance, phase):
 
     #Num_mobs_killed + 1 (adjustable)
     distance += 1
-    height += 1
+    height = distance
 
     #MAX limit
     if distance > 29:
@@ -99,6 +99,7 @@ def get_mission_xml(distance, size, phase, max_episode_steps):
                         </RewardForDiscardingItem>
                         <ContinuousMovementCommands/>
                         <ObservationFromFullStats/>
+                        <ObservationFromFullInventory/>
                         <ObservationFromRay/>
                         <ObservationFromNearbyEntities>
                                 <Range name="NearbyEntities" xrange="30" yrange="30" zrange="30" />
