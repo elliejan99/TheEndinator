@@ -86,20 +86,25 @@ class TheEndinator(gym.Env):
             self.end_time = time.time()
         self.time_taken.append(self.end_time - self.start_time)
 
-        #Log
+        #Log Time Taken
         if len(self.time_taken) > self.log_frequency + 1 and \
                 len(self.time_taken) % self.log_frequency == 0:
             self.log_time_taken()
+
+        #Log Rewards
+        if len(self.returns) > self.log_frequency + 1 and \
+                len(self.returns) % self.log_frequency == 0:
             self.log_returns()
 
-        with open('distanceTime.txt', 'w') as f:
-            f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.start_time, self.end_time, self.end_time - self.start_time))
+        if len(self.steps) > 1 and len(self.distance) > 1:
+            with open('distanceTime.txt', 'a') as f:
+                f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.start_time, self.end_time, self.end_time - self.start_time))
 
-        with open('distanceArrows.txt', 'w') as f:
-            f.write("{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.num_arrows, self.episode_return))
+            with open('distanceArrows.txt', 'a') as f:
+                f.write("{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.num_arrows, self.episode_return))
 
-        with open('distanceYaw.txt', 'w') as f:
-            f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.phase, self.distance[-1], self.obs[3], self.episode_return))
+            with open('distanceYaw.txt', 'a') as f:
+                f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.phase, self.distance[-1], self.obs[3], self.episode_return))
 
         # Get Observation
         self.obs, self.allow_shoot, _ = self.get_observation(world_state)
@@ -245,15 +250,15 @@ class TheEndinator(gym.Env):
                 # First we get the json from the observation API
                 msg = world_state.observations[-1].text
                 observations = json.loads(msg)
+                print(observations)
 
                 # Get observation
                 self.num_mobs_killed = observations['MobsKilled']
                 self.pitch = observations['Pitch']
                 self.yaw = observations['Yaw']
-                self.num_arrows = observations['Inventory_1_size']
+                self.num_arrows = observations['InventorySlot_1_size']
 
                 # Rotate observation with orientation of agent
-                #print(observations)
                 obs = obs.flatten()
 
                 try:
