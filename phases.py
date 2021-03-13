@@ -9,6 +9,7 @@ def build_pillar(distance, phase):
 
     #Num_mobs_killed + 1 (adjustable)
     distance += 1
+    height += 1
 
     #MAX limit
     if distance > 29:
