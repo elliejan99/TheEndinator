@@ -92,10 +92,10 @@ def get_mission_xml(distance, size, phase, max_episode_steps):
                     </AgentStart>
                     <AgentHandlers>
                         <RewardForDamagingEntity>
-                            <Mob reward="10" type="Pig"/>
+                            <Mob reward="5" type="Pig"/>
                         </RewardForDamagingEntity>            
                         <RewardForDiscardingItem>
-                            <Item reward="-1" type="arrow"/>
+                            <Item reward="-0.5" type="arrow"/>
                         </RewardForDiscardingItem>
                         <ContinuousMovementCommands/>
                         <ObservationFromFullStats/>
