@@ -21,7 +21,9 @@ from gym.spaces import Discrete, Box
 from ray.rllib.agents import ppo, dqn
 
 from phases import get_mission_xml
-#from final_stage import get_mission_xml
+
+
+# from final_stage import get_mission_xml
 
 
 class TheEndinator(gym.Env):
@@ -29,7 +31,7 @@ class TheEndinator(gym.Env):
     def __init__(self, env_config):
         # Static Parameters
         self.size = 50
-        self.obs_size = 8
+        self.obs_size = 5
         self.max_episode_steps = 100
         self.log_frequency = 2
 
@@ -55,7 +57,7 @@ class TheEndinator(gym.Env):
         self.p0_mobs_killed = 0
         self.phase = 0
 
-        #Logging Parameters
+        # Logging Parameters
         self.steps = []
         self.returns = []
         self.episode_step = 0
@@ -64,7 +66,7 @@ class TheEndinator(gym.Env):
         self.distance = []
         self.start_time = 0
         self.end_time = 0
-        self.time_taken = [] #record time taken for each episode
+        self.time_taken = []  # record time taken for each episode
         self.num_arrows = 0
 
     def reset(self):
@@ -76,44 +78,47 @@ class TheEndinator(gym.Env):
         # Reset Malmo
         world_state = self.init_malmo()
 
-        #Update Time Taken
+        # Update Time Taken
         if self.end_time < self.start_time:
             self.end_time = time.time()
         self.time_taken.append(self.end_time - self.start_time)
 
-        #Update Rewards
+        # Update Rewards
         self.returns.append(self.episode_return)
         current_step = self.steps[-1] if len(self.steps) > 0 else 0
         self.steps.append(current_step + self.episode_step)
 
-        #Log Time Taken
+        # Log Time Taken
         if len(self.time_taken) > self.log_frequency + 1 and \
                 len(self.time_taken) % self.log_frequency == 0:
             self.log_time_taken()
 
-        #Log Rewards
+        # Log Rewards
         if len(self.returns) > self.log_frequency + 1 and \
                 len(self.returns) % self.log_frequency == 0:
             self.log_returns()
 
-        #Log Other Statistics
+        # Log Other Statistics
         if len(self.steps) > 1 and len(self.distance) > 1:
             with open('distanceTime.txt', 'a') as f:
-                f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.start_time, self.end_time, self.end_time - self.start_time))
+                f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.start_time, self.end_time,
+                                                      self.end_time - self.start_time))
 
             with open('distanceArrows.txt', 'a') as f:
-                f.write("{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.num_arrows, self.episode_return))
+                f.write(
+                    "{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.num_arrows, self.episode_return))
 
             with open('distanceYaw.txt', 'a') as f:
-                f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.phase, self.distance[-1], self.obs[3], self.episode_return))
+                f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.phase, self.distance[-1], self.obs[3],
+                                                      self.episode_return))
 
-        #Reset Variables for Returns
+        # Reset Variables for Returns
         self.episode_return = 0
         self.episode_step = 0
 
         # Get Observation
         self.obs, self.allow_shoot, _ = self.get_observation(world_state)
-        self.distance.append(math.sqrt((self.obs[7])**2 + (self.obs[6] - 60)**2))
+        self.distance.append(self.obs[1])
         self.start_time = time.time()
 
         return self.obs
@@ -130,8 +135,8 @@ class TheEndinator(gym.Env):
             info: <dict> dictionary of extra information
         """
 
-        #yaw can be between 60 and -60
-        #pitch can be 40 and -40
+        # yaw can be between 60 and -60
+        # pitch can be 40 and -40
 
         # return action to be performed and the reward
         # this function can get the action, perform it, and calculate the reward that it gives
@@ -187,9 +192,14 @@ class TheEndinator(gym.Env):
         done = not world_state.is_mission_running
 
         # Get Reward
+        if norm < 0:
+            norm = 0
         reward = 0
         if not self.allow_shoot:
-            reward += norm * 0.01
+            if norm > 0.6:
+                reward += norm
+            elif norm <= 0.6:
+                reward += norm - 0.6
         elif self.allow_shoot:
             reward += 0.5
         for r in world_state.rewards:
@@ -203,7 +213,8 @@ class TheEndinator(gym.Env):
         Initialize new malmo mission.
         """
         my_mission = MalmoPython.MissionSpec(
-            get_mission_xml(self.num_mobs_killed, self.p0_mobs_killed, self.size, self.phase, self.max_episode_steps), True)
+            get_mission_xml(self.num_mobs_killed, self.p0_mobs_killed, self.size, self.phase, self.max_episode_steps),
+            True)
         my_mission_record = MalmoPython.MissionRecordSpec()
         my_mission.requestVideo(800, 500)
         my_mission.setViewpoint(0)
@@ -255,7 +266,7 @@ class TheEndinator(gym.Env):
                 # First we get the json from the observation API
                 msg = world_state.observations[-1].text
                 observations = json.loads(msg)
-                #print(observations)
+                # print(observations)
 
                 # Get observation
                 self.num_mobs_killed = observations['MobsKilled']
@@ -270,7 +281,7 @@ class TheEndinator(gym.Env):
                     allow_shoot = observations['LineOfSight']['type'] == 'Pig'
                 except:
                     pass
-            
+
                 obs[2] = allow_shoot
 
                 try:
@@ -294,15 +305,13 @@ class TheEndinator(gym.Env):
                     obs[1] = np.linalg.norm(pig_pos - agent_pos)
                     obs[3] = self.yaw
                     obs[4] = self.pitch
-                    obs[5] = pig_pos[0]
-                    obs[6] = pig_pos[1]
-                    obs[7] = pig_pos[2]
-                    #print("Pitch: ", self.pitch, " Yaw: ", self.yaw)
+                    # print("Pitch: ", self.pitch, " Yaw: ", self.yaw)
                 except:
                     pass
 
                 break
-
+        print()
+        print(obs)
         return obs, allow_shoot, obs[1]
 
     def dot_agent_pig(self, pig_dir, agent_dir):
@@ -312,7 +321,7 @@ class TheEndinator(gym.Env):
             return np.dot(pig_dir / pig_norm, agent_dir)
 
         return np.dot(pig_dir / pig_norm, agent_dir / agent_norm)
-    
+
     def log_time_taken(self):
         """
         Log the current returns as a graph and text file
@@ -351,19 +360,19 @@ class TheEndinator(gym.Env):
 
     def set_phase(self, phase):
         self.phase = phase
-        
+
         if phase == 1:
             self.p0_mobs_killed = self.num_mobs_killed
 
 
 if __name__ == '__main__':
-    #directory to save checkpoints and write logs
+    # directory to save checkpoints and write logs
     checkpoint_root = "tmp/exa"
     shutil.rmtree(checkpoint_root, ignore_errors=True, onerror=None)
 
     ray_results = "{}/ray_result/".format(os.getenv("HOME"))
     shutil.rmtree(ray_results, ignore_errors=True, onerror=None)
-    
+
     ray.init()
     trainer = ppo.PPOTrainer(env=TheEndinator, config={
         'env_config': {},  # No environment parameters to configure
@@ -375,7 +384,7 @@ if __name__ == '__main__':
     # import the model from file
     try:
         trainer.import_model("my_weights.h5")
-        #trainer.restore(checkpoint_file)
+        # trainer.restore(checkpoint_file)
     except:
         print("No preview weights recorded")
 
@@ -385,14 +394,14 @@ if __name__ == '__main__':
         result = trainer.train()
         print("SAVE CHECKPOINT")
 
-        #save checkpoint and print results for 100 episodes
+        # save checkpoint and print results for 100 episodes
         if i % 100 == 0:
             checkpoint_file = trainer.save(checkpoint_root)
-            print(i+1, result["episode_reward_min"],
+            print(i + 1, result["episode_reward_min"],
                   result["episode_reward_mean"],
                   result["episode_reward_max"],
                   checkpoint_file)
-            
+
         if result["episode_reward_mean"] > 3000:
             phase = 2
             print("CHANGED TO PHASE 2")
