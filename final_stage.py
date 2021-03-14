@@ -63,11 +63,12 @@ def get_mission_xml(mobs_killed, p0_mobs_killed, size, phase, max_episode_steps)
                     </AgentStart>
                     <AgentHandlers>
                         <RewardForDamagingEntity>
-                            <Mob reward="5" type="Pig"/>
+                            <Mob reward="15" type="Pig"/>
                         </RewardForDamagingEntity>            
                         <RewardForDiscardingItem>
-                            <Item reward="-0.5" type="arrow"/>
+                            <Item reward="-1" type="arrow"/>
                         </RewardForDiscardingItem>
+                        <RewardForTimeTaken initialReward="0" delta="-0.1" density="PER_TICK"/>
                         <ContinuousMovementCommands/>
                         <ObservationFromFullStats/>
                         <ObservationFromFullInventory/>
@@ -83,3 +84,4 @@ def get_mission_xml(mobs_killed, p0_mobs_killed, size, phase, max_episode_steps)
                     </AgentHandlers>
                 </AgentSection>
             </Mission>'''
+

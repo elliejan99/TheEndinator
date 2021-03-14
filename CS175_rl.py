@@ -82,7 +82,6 @@ class TheEndinator(gym.Env):
         self.time_taken.append(self.end_time - self.start_time)
 
         #Update Rewards
-        self.episode_return -= 0.1 * (self.end_time - self.start_time)
         self.returns.append(self.episode_return)
         current_step = self.steps[-1] if len(self.steps) > 0 else 0
         self.steps.append(current_step + self.episode_step)
@@ -190,7 +189,7 @@ class TheEndinator(gym.Env):
         # Get Reward
         reward = 0
         if not self.allow_shoot:
-            reward += norm
+            reward += norm * 0.01
         elif self.allow_shoot:
             reward += 0.5
         for r in world_state.rewards:
@@ -256,7 +255,7 @@ class TheEndinator(gym.Env):
                 # First we get the json from the observation API
                 msg = world_state.observations[-1].text
                 observations = json.loads(msg)
-                print(observations)
+                #print(observations)
 
                 # Get observation
                 self.num_mobs_killed = observations['MobsKilled']
@@ -298,7 +297,7 @@ class TheEndinator(gym.Env):
                     obs[5] = pig_pos[0]
                     obs[6] = pig_pos[1]
                     obs[7] = pig_pos[2]
-                    print("Pitch: ", self.pitch, " Yaw: ", self.yaw)
+                    #print("Pitch: ", self.pitch, " Yaw: ", self.yaw)
                 except:
                     pass
 
