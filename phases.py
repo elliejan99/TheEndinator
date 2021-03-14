@@ -4,19 +4,18 @@ import numpy as np
 #P1: Increasing height, same distance
 #P2: Various height, various distance
 #Distance based on num_mobs_killed
-def build_pillar(distance, phase):
+def build_pillar(mobs_killed, p0_mobs_killed, phase):
     res = []
 
-    #Num_mobs_killed + 1 (adjustable)
-    distance += 1
-    height = distance
+    height = ((mobs_killed - p0_mobs_killed) // 3) + 1
+    distance = (mobs_killed // 3) + 1
 
     #MAX limit
     if distance > 29:
         distance = 29
         
-    if height > 20:
-        height = 20
+    if height > 29:
+        height = 29
 
     if phase == 0:
         s = "<DrawBlock x='1'  y='60' z='{z}' type='glowstone'/>".format(z=distance)
@@ -28,10 +27,10 @@ def build_pillar(distance, phase):
     elif phase == 1:
         y = 60 + height
         for i in range(60, y):
-            s = "<DrawBlock x='1'  y='{y}' z='5' type='glowstone'/>".format(y=i)
+            s = "<DrawBlock x='1'  y='{y}' z='10' type='glowstone'/>".format(y=i)
             res.append(s)
 
-        s = "<DrawEntity x='1'  y='{y}' z='5' type='Pig'/>".format(y=y)
+        s = "<DrawEntity x='1'  y='{y}' z='10' type='Pig'/>".format(y=y)
         res.append(s)
         
     else:
@@ -48,7 +47,7 @@ def build_pillar(distance, phase):
     return res
 
 
-def get_mission_xml(distance, size, phase, max_episode_steps):
+def get_mission_xml(mobs_killed, p0_mobs_killed, size, phase, max_episode_steps):
     return '''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
             <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
@@ -69,12 +68,12 @@ def get_mission_xml(distance, size, phase, max_episode_steps):
                     <ServerHandlers>
                         <FlatWorldGenerator generatorString="3;7,2;1;"/>
                         <DrawingDecorator>
-                            <DrawSphere x="0" y="60" z="0" radius="40" type="stone"/>
-                            <DrawSphere x="0" y="60" z="0" radius="38" type="air"/>
+                            <DrawCuboid x1="-40" y1="50" z1="-40" x2="99" y2="100" z2="40" type="stone"/>
+                            <DrawCuboid x1="-39" y1="51" z1="-39" x2="39" y2="99" z2="39" type="air"/>
                             <DrawBlock x='0'  y='60' z='0' type='air' />
                             <DrawBlock x='0'  y='59' z='0' type='glowstone' />
                          ''' + \
-                        "".join(build_pillar(distance, phase)) + \
+                        "".join(build_pillar(mobs_killed, p0_mobs_killed, phase)) + \
                         '''
                         </DrawingDecorator>
                         <ServerQuitWhenAnyAgentFinishes/>
@@ -102,10 +101,10 @@ def get_mission_xml(distance, size, phase, max_episode_steps):
                         <ObservationFromFullInventory/>
                         <ObservationFromRay/>
                         <ObservationFromNearbyEntities>
-                                <Range name="NearbyEntities" xrange="30" yrange="30" zrange="30" />
+                                <Range name="NearbyEntities" xrange="40" yrange="40" zrange="40" />
                         </ObservationFromNearbyEntities>
                         <MissionQuitCommands/>
-                        <AgentQuitFromReachingCommandQuota total="''' + str(max_episode_steps * 3) + '''" />
+                        <AgentQuitFromReachingCommandQuota total="''' + str(max_episode_steps * 6) + '''" />
                         <AgentQuitFromTouchingBlockType>
                             <Block type="bedrock" />
                         </AgentQuitFromTouchingBlockType>

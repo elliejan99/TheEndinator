@@ -51,6 +51,7 @@ class TheEndinator(gym.Env):
         self.pitch = 0
         self.yaw = 0
         self.num_mobs_killed = 0
+        self.p0_mobs_killed = 0
         self.phase = 0
 
         #Logging Parameters
@@ -74,17 +75,16 @@ class TheEndinator(gym.Env):
         # Reset Malmo
         world_state = self.init_malmo()
 
-        # Reset Variables for Rewards
-        self.returns.append(self.episode_return)
-        current_step = self.steps[-1] if len(self.steps) > 0 else 0
-        self.steps.append(current_step + self.episode_step)
-        self.episode_return = 0
-        self.episode_step = 0
-
-        #Reset Variables for Time Taken
+        #Update Time Taken
         if self.end_time < self.start_time:
             self.end_time = time.time()
         self.time_taken.append(self.end_time - self.start_time)
+
+        #Update Rewards
+        self.episode_return -= 0.1 * (self.end_time - self.start_time)
+        self.returns.append(self.episode_return)
+        current_step = self.steps[-1] if len(self.steps) > 0 else 0
+        self.steps.append(current_step + self.episode_step)
 
         #Log Time Taken
         if len(self.time_taken) > self.log_frequency + 1 and \
@@ -96,6 +96,7 @@ class TheEndinator(gym.Env):
                 len(self.returns) % self.log_frequency == 0:
             self.log_returns()
 
+        #Log Other Statistics
         if len(self.steps) > 1 and len(self.distance) > 1:
             with open('distanceTime.txt', 'a') as f:
                 f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.start_time, self.end_time, self.end_time - self.start_time))
@@ -105,6 +106,10 @@ class TheEndinator(gym.Env):
 
             with open('distanceYaw.txt', 'a') as f:
                 f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.phase, self.distance[-1], self.obs[3], self.episode_return))
+
+        #Reset Variables for Returns
+        self.episode_return = 0
+        self.episode_step = 0
 
         # Get Observation
         self.obs, self.allow_shoot, _ = self.get_observation(world_state)
@@ -198,7 +203,7 @@ class TheEndinator(gym.Env):
         Initialize new malmo mission.
         """
         my_mission = MalmoPython.MissionSpec(
-            get_mission_xml(self.num_mobs_killed, self.size, self.phase, self.max_episode_steps), True)
+            get_mission_xml(self.num_mobs_killed, self.p0_mobs_killed, self.size, self.phase, self.max_episode_steps), True)
         my_mission_record = MalmoPython.MissionRecordSpec()
         my_mission.requestVideo(800, 500)
         my_mission.setViewpoint(0)
@@ -346,6 +351,9 @@ class TheEndinator(gym.Env):
 
     def set_phase(self, phase):
         self.phase = phase
+        
+        if phase == 1:
+            self.p0_mobs_killed = self.num_mobs_killed
 
 
 if __name__ == '__main__':
