@@ -186,7 +186,7 @@ class TheEndinator(gym.Env):
         if not self.allow_shoot:
             reward += norm
         elif self.allow_shoot:
-            reward += 1
+            reward += 0.5
         for r in world_state.rewards:
             reward += r.getValue()
         self.episode_return += reward
