@@ -68,7 +68,7 @@ class TheEndinator(gym.Env):
         self.end_time = 0
         self.time_taken = []  # record time taken for each episode
         self.num_arrows = 0
-
+        self.last_normal = 0
     def reset(self):
         """
         Resets the environment for the next episode.
@@ -192,20 +192,18 @@ class TheEndinator(gym.Env):
         done = not world_state.is_mission_running
 
         # Get Reward
-        if norm < 0:
-            norm = 0
+        # if norm < 0:
+        #     norm = 0
         reward = 0
         if not self.allow_shoot:
-            if norm > 0.6:
-                reward += norm
-            elif norm <= 0.6:
-                reward += norm - 0.6
+            reward += norm - self.last_normal
         elif self.allow_shoot:
             reward += 0.5
         for r in world_state.rewards:
             reward += r.getValue()
         self.episode_return += reward
 
+        self.last_normal = norm
         return self.obs, reward, done, dict()
 
     def init_malmo(self):
@@ -312,7 +310,7 @@ class TheEndinator(gym.Env):
                 break
         print()
         print(obs)
-        return obs, allow_shoot, obs[1]
+        return obs, allow_shoot, obs[0]
 
     def dot_agent_pig(self, pig_dir, agent_dir):
         pig_norm = np.linalg.norm(pig_dir)
