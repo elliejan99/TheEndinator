@@ -72,7 +72,7 @@ def get_mission_xml(mobs_killed, p0_mobs_killed, size, phase, max_episode_steps)
                             <DrawCuboid x1="-40" y1="50" z1="-40" x2="99" y2="100" z2="40" type="stone"/>
                             <DrawCuboid x1="-39" y1="51" z1="-39" x2="39" y2="99" z2="39" type="air"/>
                             <DrawBlock x='0'  y='60' z='0' type='air' />
-                            <DrawBlock x='0'  y='59' z='0' type='glowstone' />
+                            <DrawBlock x='0'  y='59' z='0' type='spruce_fence' />
                          ''' + \
            "".join(build_pillar(mobs_killed, p0_mobs_killed, phase)) + \
            '''
@@ -84,7 +84,7 @@ def get_mission_xml(mobs_killed, p0_mobs_killed, size, phase, max_episode_steps)
    <AgentSection mode="Survival">
        <Name>TheEndinator</Name>
        <AgentStart>
-           <Placement x="1" y="60" z="0" pitch="0" yaw="0"/>
+           <Placement x="0.5" y="61" z="0.5" pitch="0" yaw="0"/>
            <Inventory>
                <InventoryItem slot="0" type="bow"/>
                <InventoryItem slot="1" type="arrow" quantity="64"/>
