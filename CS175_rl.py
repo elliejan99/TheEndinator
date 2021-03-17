@@ -400,10 +400,10 @@ if __name__ == '__main__':
                   result["episode_reward_max"],
                   checkpoint_file)
 
-        if result["episode_reward_mean"] > 3000:
+        if result["episode_reward_mean"] > 120:
             phase = 2
             print("CHANGED TO PHASE 2")
-        elif result["episode_reward_mean"] > 2000:
+        elif result["episode_reward_mean"] > 70:
             phase = 1
             print("CHANGED TO PHASE 1")
         else:
