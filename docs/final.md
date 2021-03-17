@@ -74,10 +74,13 @@ One quantitative measure we took to show that our agent is improving is the time
 In phase 0, we set the height of the pillar to be level with the agent and initialize the distance to be one block in front of the agent. As the agent successfully kills the pig, the distance of the pillar will continue to increase until it reaches 29 blocks away. We can see from the returns graph below that there is a steady increase in the number of returns from steps 0 to 80,000. This shows that the agent is successfully finding the pig and aiming at locations near the pig due to the reward of normalization. As the distance between the agent and the pig reaches 29 blocks, the pillar lets the agent continue to train at the max distance. The distance is maxed out at around step 80,000 and we can see that the returns begin to flatten. However it continues to retain the same level of rewards which shows that the agent is adequately trained in shots for far distances. 
 In the time taken graph below, it measures the amount of time the agent needs in each successive mission to successfully kill the pig. We can see that the amount of time needed to kill the pig from steps 0 to 80,000 decreases significantly. Similar to the returns graph above, the amount of time needed becomes steady around step 80,000 as the distance is maxed out. 
 
+For phase 2, we included the returns graph to show the improvement during training. Since phase 2 consists of pigs at random combinations of distances and heights, the time taken graph would not be a good measure of improvement since both of the parameters are not gradually increasing in one direction. In the return graphs, we can see that the rewards start out low in the negative range. Since phase 2 consists of random heights and distances, it makes it very difficult for the agent to find the pig fast at the beginning of training compared to phase 0 and phase 1 where the distance and height increase by a fixed amount. The agent may wander around more and take a longer time to determine the location of the pig, contributing to the negative reward. However, we can see that there is an increasing trend that enters the positive reward range, nearing the same amount as phase 0 and 1. This shows that the agent improves greatly in taking less time to successfully locate the pig and shoot the pig to secure a positive reward even at random height and distance combinations.
+
+
 #### Phase 0
 <img src="phase0_returns.png" width="400">           <img src="phase0_timeTaken.png" width="400">
 
 #### Phase 1
 
 #### Phase 2
-
+<img src="phase2_returns.png" width="400">
