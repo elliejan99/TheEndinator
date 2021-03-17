@@ -87,6 +87,7 @@ For phase 2, we included the returns graph to show the improvement during traini
 <img src="phase0_returns.png" width="400">           <img src="phase0_timeTaken.png" width="400">
 
 #### Phase 1
+<img src="phase1_returns.png" width="400">           <img src="phase1_timetaken.png" width="400">
 
 #### Phase 2
 <img src="phase2_returns.png" width="400">
