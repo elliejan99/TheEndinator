@@ -94,9 +94,6 @@ def get_mission_xml(mobs_killed, p0_mobs_killed, size, phase, max_episode_steps)
            <RewardForDamagingEntity>
                <Mob reward="15" type="Pig"/>
            </RewardForDamagingEntity>            
-           <RewardForDiscardingItem>
-               <Item reward="-1" type="arrow"/>
-           </RewardForDiscardingItem>
            <RewardForTimeTaken initialReward="0" delta="-0.1" density="PER_TICK"/>
            <ContinuousMovementCommands/>
            <ObservationFromFullStats/>
