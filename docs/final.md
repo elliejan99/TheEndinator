@@ -39,8 +39,8 @@ Our agent begins their mission on a floating block in the center of a large cube
 In our previous implementation, we created an environment involving a dense area of pigs surrounding the agent on pillars of varying heights and distances. However, upon observing our agent aiming for a pig, only for its arrow to miss and accidentally shoot a different pig, we decided to change the training environment. Our current environment is as described previously, which involves a single pig on a pillar in front of the agent that would change in heights and distances over the course of its curriculum training. This change was done so that the agent would only be rewarded for accurately shooting a pig that it was originally aiming at. While using only one pig may increase the time it needs to train, as well as complicate how to end each mission after the pig is shot, it trains an agent to find and shoot a pig more accurately than when the environment is congregated with many pigs. 
 
 ### Observation Space
-_
-self.observation_space = Box(-360, 360, shape=(self.obs_size,), dtype=np.float32)_
+
+self.observation_space = Box(-360, 360, shape=(self.obs_size,), dtype=np.float32)
 
 In order to observe its line of sight and locate the pig, our agent uses ObservationFromRay to detect whether it’s looking at a pig and return a boolean value for allow_shoot. The disadvantage of using this observation method is that the scope of its observation is very narrow. It only returns true when the agent is looking directly at the pig but doesn’t know if the agent is close to looking at the pig. Therefore, we added ObservationFromNearbyEntities to obtain the position of nearby pigs within a specified grid. Using this observation, we were able to calculate the normalized dot product of the agent’s and pig’s relative positions to determine whether or not the agent is close to finding the pig. 
 
@@ -49,8 +49,8 @@ Using the positions of the pig and the agent we can draw two vectors. The first 
 ObservationFromFullInventory and ObservationFromFullStats are used for statistical measures to obtain the number of arrows the agent used as well as the total number of mobs that were killed. The number of arrows used will be utilized in our quantitative visualization and the number of mobs killed is used as a metric of when to increase the difficulty of each mission in our curriculum training and to signal when to end the mission. 
 
 ### Action Space
-_
-self.action_space = Box(-1 / 3, 1 / 3, shape=(3,), dtype=np.float32)_
+
+self.action_space = Box(-1 / 3, 1 / 3, shape=(3,), dtype=np.float32)
 
 There are an infinite number of states as our agent utilizes a continuous action space that consists of three actions: use [0 or 1], pitch [-1,1], and turn [-1,-1]. Our agent performs these three actions in order to transition from one state to another. The pitch adjusts the vertical angle the agent is looking at, the yaw/turn adjusts the horizontal angle (turning left and right), and the use of the bow is dependent on the observations received from the ObservationFromRay. When the agent finds a pig in its line of sight (from ObservationFromRay) and tries to use its bow, we send commands to freeze its movement, wait while it draws back its bow (for 1.1 seconds), adjust its pitch based on the speed that the agent has decided to change its pitch at (for 0.1 seconds), and fire the arrow. Otherwise, when the agent isn’t looking at a pig or if it does but decides not to use its bow, it simply turns and changes its pitch at the agent’s chosen speed in order to search for the pig in a continuous fashion. However, we’ve also decided to limit the agent’s pitch (from [-60 to 60]) to prevent the agent from looking directly up or down at its feet frequently in order to speed up the training process. We did this by preventing the agent from sending pitch commands to go upward when the agent’s pitch was already nearing directly above its head and not sending pitch commands to go downward when the agent’s pitch was already looking toward the ground. These limits were created carefully to ensure that they would not limit the agent too much to the point that it would prevent the agent from shooting at a tall target. 
 
