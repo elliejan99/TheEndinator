@@ -60,12 +60,15 @@ To improve the quality of training that the agent receives in order to achieve i
 
 #### Phase 0
 The first phase of the curriculum learning places a pig on a pillar directly in front of the agent at a distance of one block. The height of the pig will stay level with the agent throughout this phase while the distance between the pig and the agent will increase slowly by one block until the max distance of 30 blocks in between. 
+<img src="phase0_start.png" width="400">           <img src="phase0_end.png" width="400">
 
 #### Phase 1
 The second phase of the curriculum learning places a pig on a pillar in front of the agent at a distance of 10 blocks away from the agent. The distance of the pig will remain constant during this phase with increasing height from a height level with the agent to 30 blocks above the agent.
+<img src="phase1_start.png" width="400">           <img src="phase1_end.png" width="400">
 
 #### Phase 2
 The third phase of the curriculum learning places a pig on a pillar in front of the agent with varying height and distance. We randomly choose a number in the range 1 to 30 as the distance between the pig and the agent as well as a random number between 1 and 30 for the height of the pillar (beginning at the agent’s height). Each mission will have a randomized height and distance to test the agent’s versatility in any new setting.
+<img src="phase2_1.png" width="400">           <img src="phase2_2.png" width="400">           <img src="phase2_3.png" width="400">
 
 ## Evaluation
 
