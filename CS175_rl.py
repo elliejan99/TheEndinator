@@ -1,5 +1,3 @@
-# Rllib docs: https://docs.ray.io/en/latest/rllib.html
-
 try:
     from malmo import MalmoPython
 except:
@@ -22,24 +20,17 @@ from ray.rllib.agents import ppo, dqn
 
 from phases import get_mission_xml
 
-
-# from final_stage import get_mission_xml
-
-
 class TheEndinator(gym.Env):
 
     def __init__(self, env_config):
-        # Static Parameters
         self.size = 50
         self.obs_size = 5
         self.max_episode_steps = 100
         self.log_frequency = 2
 
-        # Rllib Parameters #pitch, turn, use
         self.action_space = Box(-1 / 3, 1 / 3, shape=(3,), dtype=np.float32)
         self.observation_space = Box(-360, 360, shape=(self.obs_size,), dtype=np.float32)
 
-        # Malmo Parameters
         self.agent_host = MalmoPython.AgentHost()
         try:
             self.agent_host.parse(sys.argv)
@@ -48,7 +39,6 @@ class TheEndinator(gym.Env):
             print(self.agent_host.getUsage())
             exit(1)
 
-        # TheEndinator Parameters
         self.obs = None
         self.allow_shoot = False
         self.pitch = 0
@@ -57,7 +47,6 @@ class TheEndinator(gym.Env):
         self.p0_mobs_killed = 0
         self.phase = 0
 
-        # Logging Parameters
         self.steps = []
         self.returns = []
         self.episode_step = 0
@@ -66,39 +55,29 @@ class TheEndinator(gym.Env):
         self.distance = []
         self.start_time = 0
         self.end_time = 0
-        self.time_taken = []  # record time taken for each episode
+        self.time_taken = [] 
         self.num_arrows = 0
         self.last_normal = 0
+        
     def reset(self):
-        """
-        Resets the environment for the next episode.
-        Returns
-            observation: <np.array> flattened initial obseravtion
-        """
-        # Reset Malmo
         world_state = self.init_malmo()
 
-        # Update Time Taken
         if self.end_time < self.start_time:
             self.end_time = time.time()
         self.time_taken.append(self.end_time - self.start_time)
 
-        # Update Rewards
         self.returns.append(self.episode_return)
         current_step = self.steps[-1] if len(self.steps) > 0 else 0
         self.steps.append(current_step + self.episode_step)
 
-        # Log Time Taken
         if len(self.time_taken) > self.log_frequency + 1 and \
                 len(self.time_taken) % self.log_frequency == 0:
             self.log_time_taken()
 
-        # Log Rewards
         if len(self.returns) > self.log_frequency + 1 and \
                 len(self.returns) % self.log_frequency == 0:
             self.log_returns()
 
-        # Log Other Statistics
         if len(self.steps) > 1 and len(self.distance) > 1:
             with open('distanceTime.txt', 'a') as f:
                 f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.distance[-1], self.start_time, self.end_time,
@@ -112,11 +91,9 @@ class TheEndinator(gym.Env):
                 f.write("{}\t{}\t{}\t{}\t{}\n".format(self.steps[-1], self.phase, self.distance[-1], self.obs[3],
                                                       self.episode_return))
 
-        # Reset Variables for Returns
         self.episode_return = 0
         self.episode_step = 0
 
-        # Get Observation
         self.obs, self.allow_shoot, _ = self.get_observation(world_state)
         self.distance.append(self.obs[1])
         self.start_time = time.time()
@@ -124,24 +101,6 @@ class TheEndinator(gym.Env):
         return self.obs
 
     def step(self, action):
-        """
-        Take an action in the environment and return the results.
-        Args
-            action: <int> index of the action to take
-        Returns
-            observation: <np.array> flattened array of obseravtion
-            reward: <int> reward from taking action
-            done: <bool> indicates terminal state
-            info: <dict> dictionary of extra information
-        """
-
-        # yaw can be between 60 and -60
-        # pitch can be 40 and -40
-
-        # return action to be performed and the reward
-        # this function can get the action, perform it, and calculate the reward that it gives
-
-        # Get Action
         shoot = 0
         if action[2] >= 0:
             shoot = 1
@@ -192,8 +151,6 @@ class TheEndinator(gym.Env):
         done = not world_state.is_mission_running
 
         # Get Reward
-        # if norm < 0:
-        #     norm = 0
         reward = 0
         if not self.allow_shoot:
             reward += norm - 0.6
@@ -207,9 +164,6 @@ class TheEndinator(gym.Env):
         return self.obs, reward, done, dict()
 
     def init_malmo(self):
-        """
-        Initialize new malmo mission.
-        """
         my_mission = MalmoPython.MissionSpec(
             get_mission_xml(self.num_mobs_killed, self.p0_mobs_killed, self.size, self.phase, self.max_episode_steps),
             True)
@@ -219,7 +173,7 @@ class TheEndinator(gym.Env):
 
         max_retries = 3
         my_clients = MalmoPython.ClientPool()
-        my_clients.add(MalmoPython.ClientInfo('127.0.0.1', 10000))  # add Minecraft machines here as available
+        my_clients.add(MalmoPython.ClientInfo('127.0.0.1', 10000))  
 
         for retry in range(max_retries):
             try:
@@ -242,15 +196,6 @@ class TheEndinator(gym.Env):
         return world_state
 
     def get_observation(self, world_state):
-        """
-        Use the agent observation API to get a flattened 2 x 5 x 5 grid around the agent.
-        The agent is in the center square facing up.
-        Args
-            world_state: <object> current agent world state
-        Returns
-            observation: <np.array> the state observation
-            allow_break_action: <bool> whether the agent is facing a diamond
-        """
         obs = np.zeros((self.obs_size,))
         allow_shoot = False
 
@@ -261,18 +206,14 @@ class TheEndinator(gym.Env):
                 raise AssertionError('Could not load grid.')
 
             if world_state.number_of_observations_since_last_state > 0:
-                # First we get the json from the observation API
                 msg = world_state.observations[-1].text
                 observations = json.loads(msg)
-                # print(observations)
 
-                # Get observation
                 self.num_mobs_killed = observations['MobsKilled']
                 self.pitch = observations['Pitch']
                 self.yaw = observations['Yaw']
                 self.num_arrows = observations['InventorySlot_1_size']
-
-                # Rotate observation with orientation of agent
+                
                 obs = obs.flatten()
 
                 try:
@@ -299,17 +240,13 @@ class TheEndinator(gym.Env):
                         self.end_time = time.time()
                         self.agent_host.sendCommand("quit")
 
-                    # distance
                     obs[1] = np.linalg.norm(pig_pos - agent_pos)
                     obs[3] = self.yaw
                     obs[4] = self.pitch
-                    # print("Pitch: ", self.pitch, " Yaw: ", self.yaw)
                 except:
                     pass
 
                 break
-        print()
-        print(obs)
         return obs, allow_shoot, obs[0]
 
     def dot_agent_pig(self, pig_dir, agent_dir):
@@ -321,12 +258,6 @@ class TheEndinator(gym.Env):
         return np.dot(pig_dir / pig_norm, agent_dir / agent_norm)
 
     def log_time_taken(self):
-        """
-        Log the current returns as a graph and text file
-        Args:
-            steps (list): list of global steps after each episode
-            returns (list): list of total return of each episode
-        """
         box = np.ones(self.log_frequency) / self.log_frequency
         time_taken_smooth = np.convolve(self.time_taken[1:], box, mode='same')
         plt.clf()
@@ -337,12 +268,6 @@ class TheEndinator(gym.Env):
         plt.savefig('timeTaken.png')
 
     def log_returns(self):
-        """
-        Log the current returns as a graph and text file
-        Args:
-            steps (list): list of global steps after each episode
-            returns (list): list of total return of each episode
-        """
         box = np.ones(self.log_frequency) / self.log_frequency
         returns_smooth = np.convolve(self.returns[1:], box, mode='same')
         plt.clf()
@@ -364,7 +289,6 @@ class TheEndinator(gym.Env):
 
 
 if __name__ == '__main__':
-    # directory to save checkpoints and write logs
     checkpoint_root = "tmp/exa"
     shutil.rmtree(checkpoint_root, ignore_errors=True, onerror=None)
 
@@ -379,20 +303,15 @@ if __name__ == '__main__':
         'num_workers': 0,  # We aren't using parallelism
         'optimizer': {}
     })
-    # import the model from file
+    
     try:
         trainer.import_model("my_weights.h5")
-        # trainer.restore(checkpoint_file)
     except:
         print("No preview weights recorded")
 
     for i in range(1000):
-        # Perform one iteration of training the policy with PPO
-        print("BEFORE AGENT STARTS TRAINING")
         result = trainer.train()
-        print("SAVE CHECKPOINT")
 
-        # save checkpoint and print results for 100 episodes
         if i % 100 == 0:
             checkpoint_file = trainer.save(checkpoint_root)
             print(i + 1, result["episode_reward_min"],
@@ -402,13 +321,10 @@ if __name__ == '__main__':
 
         if result["episode_reward_mean"] > 120:
             phase = 2
-            print("CHANGED TO PHASE 2")
         elif result["episode_reward_mean"] > 70:
             phase = 1
-            print("CHANGED TO PHASE 1")
         else:
             phase = 0
-            print("IN PHASE 0")
 
         trainer.workers.foreach_worker(
             lambda ev: ev.foreach_env(
