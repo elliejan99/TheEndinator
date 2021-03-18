@@ -75,6 +75,8 @@ The third phase of the curriculum learning places a pig on a pillar in front of 
 
 ## Evaluation
 
+### Quantitative
+
 One quantitative measure we took to show that our agent is improving is the time it takes to successfully find and shoot the pig. Another method of quantitative evaluation is our graph that shows the number of rewards it was getting with every successive mission. 
 
 In phase 0, we set the height of the pillar to be level with the agent and initialize the distance to be one block in front of the agent. As the agent successfully kills the pig, the distance of the pillar will continue to increase until it reaches 29 blocks away. We can see from the returns graph below that there is a steady increase in the number of returns from steps 0 to 80,000. This shows that the agent is successfully finding the pig and aiming at locations near the pig due to the reward of normalization. As the distance between the agent and the pig reaches 29 blocks, the pillar lets the agent continue to train at the max distance. The distance is maxed out at around step 80,000 and we can see that the returns begin to flatten. However it continues to retain the same level of rewards which shows that the agent is adequately trained in shots for far distances. Similar to phase 0, in the phase 1 returns graph, we can see that the rewards vs steps has an increasing trend. Since phase 1 is run after the training of phase 0, we can see that it reaches a return of around 50 at at steps 25,000, which is only half of the steps needed compared to phase 0. The rewards continue to gradually increase as the height of the pillar increases to 29 blocks above the agent and the agent receives more normalization rewards for searching near the pig. 
@@ -92,3 +94,9 @@ For phase 2, we included the returns graph to show the improvement during traini
 
 #### Phase 2
 <img src="phase2_returns.png" width="400">
+
+### Qualitative
+
+<video controls loop>
+  <source src="qual_1.mov" type="video/mov">
+</video>
