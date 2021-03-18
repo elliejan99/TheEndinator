@@ -2,6 +2,10 @@
 layout: default
 title: Final Report
 ---
+## Video 
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/DS_czjGnAFA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ## Project Summary 
 
 On the quest to defeat the final boss of Minecraft, players must first destroy all the ender crystals that lie atop large pillars in the dragon’s arena. To simulate this, the goal of our project is to utilize reinforcement learning with a custom environment in order to train our agent to accurately shoot objects at varying heights and distances with a bow. This process involves having the agent search for targets to shoot, as well as adjusting the vertical angle of their arrow in order to hit their targets. 
