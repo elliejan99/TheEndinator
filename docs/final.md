@@ -97,6 +97,4 @@ For phase 2, we included the returns graph to show the improvement during traini
 
 ### Qualitative
 
-<video controls loop>
-  <source src="qual_1.mov" type="video/mov">
-</video>
+
