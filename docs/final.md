@@ -101,6 +101,19 @@ For phase 2, we included the returns graph to show the improvement during traini
 
 ### Qualitative
 
+At the start of training our agent, it would search for the pig in a broad area, often spinning around to look at its surroundings and in the opposite direction of the pig. But over time, it realized that it would be given a negative reward for looking directly away from the pig and began limiting itself to searching in an 180 degree perimeter from its left to right side instead. Finally, nearing the end of its training, the agent realized that it could increase its rewards by looking near the pig, resulting in the agent tightening its perimeter of search even closer to the pig. Instead of looking from side-to-side in a wide angle as it previously did, the agent began favoring to look up and down in a zigzag fashion within a small area to most efficiently find the pig. In the video below, there are three successful runs that show how the agent searches the area near the pig after it minimizes its search perimeter. The three clips show the zigzag movement that the agent performs when it is nearing the location of the pig and angles to make its shot. Therefore, over the course of its training, the agent was able to find the pig more often and gain opportunities to shoot it.  If the agent is dropped in the Ender dragon’s large domain surrounded by pillars of End crystals, it will be able to efficiently find each End crystal given its dot product normalization that we pass in from its observations. 
+
+In terms of shooting the target, our agent has also greatly improved over the course of its training. In the early stages of phase 0 of its curriculum training, the pig started off right in front of the agent, which meant that any low aimed shots would be able to easily hit the pig. But as the distance of the pig increased with each successive mission, the pig began reaching a distance in which any low aimed shots would fall short of the pig and hit the block that the pig was standing on instead. As this continued, the agent began adjusting its pitch to be higher once it found the pig. Instead of aiming at the pig’s feet as it had done in the beginning, the agent began aiming for the pig’s body to account for the increased distance and weight of the gravity of the arrow. This way, once the arrow travels over the distance between the agent and the pig, it would be able to hit the pig’s feet. There were some stray shots that went above the pig and some low ones that hit the block underneath the pig, but our agent was slowly adjusting to fire at an angle rather than directly at the pig if the pig was further away.
+
 <iframe width="600" height="350" src="https://www.youtube.com/embed/T3DJ9PvbCQM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+## References
+
+<ul>
+  <li> Referenced this website to understand custom environments & how to use checkpoints: https://medium.com/distributed-computing-with-ray/anatomy-of-a-custom-environment-for-rllib-327157f269e5 </li>
+  <li> Referenced this website to find information about how much damage a bow does, how much health a pig has, and how tall the Ender dragon’s pillars are: https://minecraft.gamepedia.com/Minecraft_Wiki </li>
+  <li> Reinforcement Learning: https://docs.ray.io/en/master/rllib.html </li>
+  <li> Malmo XML: http://microsoft.github.io/malmo/0.30.0/Schemas/MissionHandlers.html </li>
+</ul>
 
 
