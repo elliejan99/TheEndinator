@@ -48,6 +48,12 @@ self.observation_space = Box(-360, 360, shape=(self.obs_size,), dtype=np.float32
 
 In order to observe its line of sight and locate the pig, our agent uses ObservationFromRay to detect whether it’s looking at a pig and return a boolean value for allow_shoot. The disadvantage of using this observation method is that the scope of its observation is very narrow. It only returns true when the agent is looking directly at the pig but doesn’t know if the agent is close to looking at the pig. Therefore, we added ObservationFromNearbyEntities to obtain the position of nearby pigs within a specified grid. Using this observation, we were able to calculate the normalized dot product of the agent’s and pig’s relative positions to determine whether or not the agent is close to finding the pig. 
 
+Normalizing a vector: 
+<img src="normalization.png" width="55"> x,y,z / magnitude
+
+Dot Product Calculation:
+<img src="dotproduct.png" width="400">
+
 Using the positions of the pig and the agent we can draw two vectors. The first vector starts from the pig and points in the opposite direction of the agent while the second vector starts from the agent and points in the direction that the agent is looking. The result of the normalized dot product of these two vectors will equal one when the agent is looking in the direction of the pig, zero when the agent is looking perpendicular to the pig, and negative one when the agent is looking in the opposite direction of the pig. We used these normalized values as rewards to influence the agent to search in the right direction of the pig.  It would receive a positive reward when looking in the direction of the pig and a negative reward for looking in the opposite direction.
 
 ObservationFromFullInventory and ObservationFromFullStats are used for statistical measures to obtain the number of arrows the agent used as well as the total number of mobs that were killed. The number of arrows used will be utilized in our quantitative visualization and the number of mobs killed is used as a metric of when to increase the difficulty of each mission in our curriculum training and to signal when to end the mission. 
@@ -114,6 +120,9 @@ In terms of shooting the target, our agent has also greatly improved over the co
   <li> Referenced this website to find information about how much damage a bow does, how much health a pig has, and how tall the Ender dragon’s pillars are: https://minecraft.gamepedia.com/Minecraft_Wiki </li>
   <li> Reinforcement Learning: https://docs.ray.io/en/master/rllib.html </li>
   <li> Malmo XML: http://microsoft.github.io/malmo/0.30.0/Schemas/MissionHandlers.html </li>
+  <li> RL image: https://www.kdnuggets.com/2018/03/5-things-reinforcement-learning.html </li>
+  <li> Normalization: https://www.freetext.org/Introduction_to_Linear_Algebra/Basic_Vector_Operations/Normalization/ </li>
+  <li> Dot Product Calculation Image: https://www.pinterest.com/pin/671458625671424971/ </li>
 </ul>
 
 
